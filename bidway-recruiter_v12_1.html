@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BidWay Recruiter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#F1F5F9; --surface:#FFFFFF; --panel:#F8FAFC; --border:#E2E8F0; --border-strong:#CBD5E1;
+  --ink:#0F172A; --ink2:#1E293B; --muted:#64748B; --faint:#94A3B8;
+  --blue:#2563EB; --blue-dark:#1D4ED8; --blue-bg:#EFF4FF; --blue-ring:#BFDBFE;
+  --first:#15803D; --first-bg:#DCFCE7;
+  --emerging:#1D4ED8; --emerging-bg:#DBEAFE;
+  --growing:#B45309; --growing-bg:#FEF3C7;
+  --established:#475569; --established-bg:#E2E8F0;
+  --danger:#DC2626; --on-accent:#FFFFFF;
+  --radius:10px; --radius-sm:7px;
+}
+/* ===== Color themes (ported from R!CON: Dark · Gray · Light · Army · KOOL) ===== */
+html.dark{
+  --bg:#0f1216; --surface:#181c22; --panel:#13161b; --border:#2a2f37; --border-strong:#3b424d;
+  --ink:#e8eaed; --ink2:#c4c9d0; --muted:#9aa1ab; --faint:#6f7782;
+  --blue:#4a90e8; --blue-dark:#6aa6ee; --blue-bg:#16243a; --blue-ring:#27406a; --on-accent:#0f1216;
+  --first:#34d399; --first-bg:#0f2a20; --emerging:#5ab4ff; --emerging-bg:#102740;
+  --growing:#fbbf24; --growing-bg:#2c2410; --established:#94a3b8; --established-bg:#1f242c; --danger:#f87171;
+}
+html.gray{
+  --bg:#262d38; --surface:#303845; --panel:#2a313c; --border:#454e5c; --border-strong:#5a6577;
+  --ink:#eaf0f7; --ink2:#c4d0e0; --muted:#9fb0c4; --faint:#7e8ca0;
+  --blue:#3cd9b2; --blue-dark:#5ab4ff; --blue-bg:#1e3a40; --blue-ring:#2f5566; --on-accent:#10241d;
+  --first:#3cd9b2; --first-bg:#11302a; --emerging:#5ab4ff; --emerging-bg:#102a3a;
+  --growing:#f5d050; --growing-bg:#2c2814; --established:#9fb0c4; --established-bg:#2a313c; --danger:#ff85a0;
+}
+html.army{
+  --bg:#2a3024; --surface:#343b2c; --panel:#2f3528; --border:#566348; --border-strong:#8d9c78;
+  --ink:#ebede0; --ink2:#d4d8c0; --muted:#b4bca0; --faint:#92a07e;
+  --blue:#d4e87a; --blue-dark:#c4d48a; --blue-bg:#363f24; --blue-ring:#4a5530; --on-accent:#1f2417;
+  --first:#d4e87a; --first-bg:#2f3a1e; --emerging:#8ec0ff; --emerging-bg:#243240;
+  --growing:#f5d050; --growing-bg:#332e14; --established:#b4bca0; --established-bg:#2f3528; --danger:#ff95a4;
+}
+html.kool{
+  --bg:#1c1c1d; --surface:#262627; --panel:#1f1f20; --border:#3a3a3d; --border-strong:#4a4a4e;
+  --ink:#ededed; --ink2:#b4b4b6; --muted:#8a8a8d; --faint:#6e6e72;
+  --blue:#4a90e8; --blue-dark:#6aa6ee; --blue-bg:#16243a; --blue-ring:#27406a; --on-accent:#1c1c1d;
+  --first:#34d399; --first-bg:#11281f; --emerging:#5ab4ff; --emerging-bg:#102740;
+  --growing:#f5b042; --growing-bg:#2c2210; --established:#b4b4b6; --established-bg:#262627; --danger:#ef4444;
+}
+/* Theme toggle (sliding-pill, 5 stops) */
+.theme-toggle{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border-strong);border-radius:20px;padding:4px 12px 4px 6px;cursor:pointer;transition:all .2s;flex-shrink:0;user-select:none}
+.theme-toggle:hover{border-color:var(--blue)}
+.toggle-track{width:70px;height:16px;background:var(--blue);border-radius:8px;position:relative;transition:background .25s;flex-shrink:0;opacity:.85}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:left .25s;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+html.dark .toggle-thumb{left:2px}
+html.gray .toggle-thumb{left:16px}
+html.light .toggle-thumb{left:30px}
+html.army .toggle-thumb{left:44px}
+html.kool .toggle-thumb{left:56px}
+.toggle-label{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);white-space:nowrap;min-width:38px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1680px;margin:0 auto;padding:0 22px 90px}
+
+/* ---- App bar ---- */
+.appbar{display:flex;align-items:center;gap:18px;padding:14px 4px;border-bottom:1px solid var(--border);margin-bottom:22px;background:var(--bg)}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand .logo{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:var(--blue)}
+.brand .name{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.brand .sub{font-size:11.5px;color:var(--muted);font-weight:500}
+.appbar .spacer{flex:1}
+.tabs{display:flex;gap:2px}
+.tab{appearance:none;background:none;border:none;font:inherit;font-weight:600;color:var(--muted);padding:8px 14px;border-radius:7px;cursor:pointer}
+.tab:hover{color:var(--ink);background:var(--panel)}
+.tab.active{color:var(--blue);background:var(--blue-bg)}
+.tab .count{display:inline-block;margin-left:6px;font-size:11px;font-weight:700;background:var(--border);color:var(--muted);border-radius:99px;padding:1px 7px}
+.tab.active .count{background:var(--blue);color:var(--on-accent)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);color:var(--on-accent);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
+
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(15,23,42,.04)}
+
+/* ---- Setup ---- */
+.setup-head{padding:16px 20px 0}
+.setup-head h1{font-size:15px;font-weight:700;letter-spacing:-0.01em}
+.setup-head p{font-size:12px;color:var(--muted);margin-top:2px}
+.setup-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:16px 8px 4px}
+.sect{padding:0 16px;border-right:1px solid var(--border)}
+.sect:last-child{border-right:none}
+.sect-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:12px}
+.sect-num{width:18px;height:18px;border-radius:50%;background:var(--blue-bg);color:var(--blue);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.field{margin-bottom:11px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.field input,.field select{width:100%;font:inherit;padding:7px 9px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-ring)}
+.field .hint{font-size:10.5px;color:var(--faint);margin-top:4px;line-height:1.4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.toggle-row input{width:15px;height:15px;accent-color:var(--blue);flex-shrink:0}
+.toggle-row span{font-weight:500;font-size:12px}
+.focus-pills{display:flex;flex-direction:column;gap:7px}
+.fchk{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink2);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 10px;cursor:pointer;user-select:none}
+.fchk input{width:15px;height:15px;accent-color:var(--blue);margin:0}
+.fchk:has(input:checked){background:var(--blue-bg);border-color:var(--blue-ring);color:var(--blue-dark)}
+
+/* ---- Run + export bar ---- */
+.runbar{padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+.runbar-hint{grid-column:1 / -1;font-size:11px;color:var(--faint);line-height:1.45}
+.btn-run{display:block;width:100%;appearance:none;font:inherit;font-weight:700;font-size:14px;letter-spacing:.01em;border:1px solid var(--blue);border-radius:var(--radius-sm);padding:13px;cursor:pointer;background:var(--blue);color:var(--on-accent);transition:background .15s}
+.btn-run:hover{background:var(--blue-dark)}
+.btn-run:disabled{opacity:.55;cursor:not-allowed}
+.btn-run.secondary-run{background:var(--surface);color:var(--blue)}
+.btn-run.secondary-run:hover{background:var(--blue-bg)}
+.coverage{margin:14px 0 0;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--muted);display:none}
+.coverage.show{display:block}
+.valuecard{border:1px solid var(--blue-ring);background:var(--blue-bg);border-radius:var(--radius);padding:14px 16px;margin:0 0 14px}
+.valuecard-head{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.valuecard-head .vc-sub{font-weight:500;color:var(--muted);font-size:11.5px}
+.valuecard-inputs{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:12px}
+.valuecard-inputs label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.valuecard-inputs input{width:120px;font:inherit;font-size:13px;padding:6px 9px;border:1px solid var(--border-strong);border-radius:7px;background:var(--surface)}
+.valuecard-inputs input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-ring)}
+.valuecard-out{font-size:13px;color:var(--ink2);line-height:1.7}
+.valuecard-out b{color:var(--blue-dark)}
+.valuecard-out .big{font-size:20px;font-weight:800;color:var(--blue-dark)}
+.vm-stats{display:flex;flex-wrap:wrap;gap:10px;margin:4px 0 12px}
+.vm-stat{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px}
+.vm-stat.vm-hero{background:var(--blue);border-color:var(--blue)}
+.vm-stat.vm-hero .vm-num{color:var(--on-accent)}
+.vm-stat.vm-hero .vm-lbl{color:var(--on-accent);opacity:.9}
+.vm-num{font-size:22px;font-weight:800;color:var(--blue-dark);line-height:1.1}
+.vm-stat .vm-lbl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.03em}
+.vm-lbl .vm-sub{text-transform:none;letter-spacing:0;font-weight:500}
+.vm-note{font-size:11.5px;color:var(--muted);line-height:1.65}
+.fp-divider{height:1px;background:var(--border);margin:18px 0}
+.fp-table{width:100%;border-collapse:collapse;font-size:12.5px;margin:2px 0}
+.fp-table th,.fp-table td{text-align:right;padding:8px 12px;border-bottom:1px solid var(--border)}
+.fp-table th:first-child,.fp-table td:first-child{text-align:left;color:var(--muted);font-weight:600}
+.fp-table th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);background:var(--panel)}
+.fp-table td{color:var(--ink2);font-variant-numeric:tabular-nums}
+.fp-table tr.fp-hl td{font-weight:800;color:var(--blue-dark);border-bottom:none}
+.fp-table tr.fp-hl{background:var(--blue-bg)}
+.lb-row{display:flex;gap:24px;flex-wrap:wrap;margin-top:16px}
+.lb-wrap{flex:1;min-width:220px}
+.lb-title{font-size:11.5px;font-weight:700;color:var(--ink2);margin-bottom:8px}
+.lb-title .lb-sub{font-weight:500;color:var(--muted)}
+.lb-chart{display:flex;align-items:flex-end;gap:10px;height:120px}
+.lb-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;flex:1}
+.lb-count{font-size:11px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.lb-bar{width:70%;max-width:46px;border-radius:4px 4px 0 0;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.lb-fill{width:100%;border-radius:4px 4px 0 0}
+.lb-label{font-size:10px;color:var(--muted);text-align:center}
+.coverage b{color:var(--ink2)}
+.coverage .lbl{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-right:8px}
+@media(max-width:640px){.runbar{grid-template-columns:1fr}}
+.exportbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:0 20px 16px}
+.btn{appearance:none;font:inherit;font-weight:600;border-radius:var(--radius-sm);padding:8px 14px;cursor:pointer;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink2);transition:all .12s}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.small{padding:6px 11px;font-size:12px}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.primary{background:var(--blue);color:var(--on-accent);border-color:var(--blue)}
+.btn.primary:hover{background:var(--blue-dark);color:var(--on-accent)}
+.runstatus{font-size:12.5px;color:var(--muted);font-weight:500}
+.progress-wrap{flex:1;min-width:240px;display:none}
+.progress-wrap.show{display:block}
+.progress-label{font-size:11.5px;color:var(--muted);margin-bottom:4px;font-weight:500}
+.progress-bar{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;width:0%;background:var(--blue);border-radius:99px;transition:width .3s}
+.notice{border:1px solid var(--blue-ring);border-radius:var(--radius-sm);background:var(--blue-bg);padding:11px 14px;font-size:12.5px;margin:0 20px 16px;display:none;color:var(--ink2);line-height:1.5}
+.notice.show{display:block}
+.notice ul{margin:6px 0 0 16px}
+
+/* ---- Results table ---- */
+.results-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--border)}
+.results-head .title{display:flex;align-items:center;gap:10px}
+.results-head h2{font-size:14px;font-weight:700}
+.results-head .sub{font-size:12px;color:var(--muted)}
+.filter-pills{display:flex;gap:5px;flex-wrap:wrap}
+.result-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mini-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink2);border:1px solid var(--border-strong);border-radius:99px;padding:5px 11px;cursor:pointer;user-select:none}
+.mini-toggle:has(input:checked){background:var(--blue-bg);border-color:var(--blue-ring);color:var(--blue-dark)}
+.mini-toggle input{accent-color:var(--blue);margin:0}
+.mini-sel,.mini-inp{font:inherit;font-size:12px;padding:6px 9px;border:1px solid var(--border-strong);border-radius:7px;background:var(--surface);color:var(--ink)}
+.mini-sel:focus,.mini-inp:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-ring)}
+.mini-inp{width:140px}
+.fsc-tag{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;font-weight:700;color:var(--ink2);background:var(--panel);border:1px solid var(--border-strong);border-radius:5px;padding:2px 7px}
+.fsc-name{font-size:10px;color:var(--faint);margin-top:3px;max-width:120px;line-height:1.3}
+.fpill{appearance:none;font:inherit;font-size:12px;font-weight:600;border:1px solid var(--border-strong);background:var(--surface);color:var(--muted);border-radius:99px;padding:5px 13px;cursor:pointer}
+.fpill:hover{border-color:var(--blue);color:var(--blue)}
+.fpill.active{border-color:var(--blue);color:#fff;background:var(--blue)}
+.tablewrap{overflow-x:auto}
+table.results{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:auto}
+table.results thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--border-strong);background:var(--panel);white-space:nowrap;position:sticky;top:0;z-index:6;box-shadow:0 1px 0 var(--border)}
+table.results td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+table.results tr:hover td{background:var(--panel)}
+.co-name{font-weight:700;color:var(--ink);font-size:13px}
+.co-loc{font-size:11.5px;color:var(--muted);margin-top:2px}
+.co-ids{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;color:var(--faint);margin-top:3px}
+.cell-status{white-space:nowrap}
+.tier-pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:99px;padding:3px 9px;white-space:nowrap}
+.tier-pill.first{background:var(--first-bg);color:var(--first)}
+.tier-pill.emerging{background:var(--emerging-bg);color:var(--emerging)}
+.tier-pill.growing{background:var(--growing-bg);color:var(--growing)}
+.tier-pill.established{background:var(--established-bg);color:var(--established)}
+.tier-pill.checking{background:var(--panel);color:var(--faint)}
+.status-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.new-flag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.04em;background:var(--ink);color:#fff;border-radius:99px;padding:2px 7px;margin-top:5px}
+.aw-id{font-weight:600;color:var(--ink2)}
+.aw-id a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--border-strong)}
+.aw-id a:hover{border-color:var(--blue);color:var(--blue)}
+.aw-desc{color:var(--muted);font-size:11px;margin-top:2px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aw-date{color:var(--faint);font-size:11px;margin-top:2px}
+.amt{font-weight:700;color:var(--first);white-space:nowrap}
+.cell-c{text-align:center}
+.cell-c .n{font-weight:700;font-size:13px}
+.cell-c .l{font-size:10.5px;color:var(--muted)}
+.phone-num{font-weight:700;color:var(--blue);white-space:nowrap}
+.phone-find{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:var(--muted);text-decoration:none;margin-top:3px}
+.phone-find:hover{color:var(--blue)}
+.contact-email{margin-top:4px}
+.email-link{font-size:11px;font-weight:600;color:var(--blue);text-decoration:none;word-break:break-all}
+.email-link:hover{text-decoration:underline}
+.sebadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.02em;border-radius:99px;padding:2px 7px;white-space:nowrap;margin:2px 2px 0 0}
+.se-sdvosb{background:#DCFCE7;color:#15803D}.se-vosb{background:#DBEAFE;color:#1D4ED8}.se-wosb{background:#FAE8FF;color:#A21CAF}
+.se-8a{background:#EDE9FE;color:#7C3AED}.se-hz{background:#FEF3C7;color:#B45309}.se-sdb{background:#DCFCE7;color:#166534}
+.se-min{background:#F1F5F9;color:#475569}.se-sb{background:#F1F5F9;color:#475569}
+.talk{font-size:11.5px;color:var(--ink2);line-height:1.5;min-width:230px}
+.talk .clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.talk.open .clamp{-webkit-line-clamp:unset}
+.talk-more{appearance:none;background:none;border:none;font:inherit;font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;padding:2px 0;margin-top:2px}
+.copybtn{appearance:none;font:inherit;font-size:10.5px;font-weight:600;border:1px solid var(--border-strong);background:var(--surface);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;margin-top:5px}
+.copybtn:hover{border-color:var(--blue);color:var(--blue)}
+.linkchips{display:flex;flex-direction:column;gap:5px;min-width:120px}
+.linkrow{display:flex;gap:5px}
+.lnk{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--ink2);text-decoration:none;border:1px solid var(--border-strong);border-radius:6px;padding:4px 9px;white-space:nowrap}
+.lnk:hover{border-color:var(--blue);color:var(--blue)}
+.crmcell{min-width:120px}
+table.results th:nth-child(1),table.results td:nth-child(1){min-width:190px}
+table.results th:nth-child(8),table.results td:nth-child(8){width:24%}
+
+.crmcell select,.crmcell input{width:100%;font:inherit;font-size:11.5px;padding:5px 7px;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface);margin-bottom:5px}
+.crmcell select:focus,.crmcell input:focus{outline:none;border-color:var(--blue)}
+
+/* ---- Pagination ---- */
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 20px}
+.pager .pages{display:flex;align-items:center;gap:3px}
+.pager button{appearance:none;font:inherit;font-size:12px;font-weight:600;border:1px solid var(--border-strong);background:var(--surface);color:var(--ink2);border-radius:6px;padding:5px 10px;cursor:pointer;min-width:32px}
+.pager button:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+.pager button.active{background:var(--blue);color:var(--on-accent);border-color:var(--blue)}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.pager .rpp{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.pager .rpp select{font:inherit;font-size:12px;padding:4px 7px;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface)}
+.pager .ellipsis{color:var(--faint);padding:0 2px}
+
+/* ---- Stats ---- */
+.stat-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat .n{font-size:24px;font-weight:800;letter-spacing:-0.02em}
+.stat .l{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.stat.t-first .n{color:var(--first)}.stat.t-emerging .n{color:var(--emerging)}.stat.t-growing .n{color:var(--growing)}
+
+.freshness{margin:0 20px 14px;padding:9px 13px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11.5px;color:var(--muted);display:none}
+.freshness.show{display:block}
+.monthbars{display:flex;align-items:flex-end;gap:6px;margin:12px 0 6px;padding:4px 2px}
+.mb-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;flex:1;min-width:30px}
+.mb-count{font-size:10px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.mb-bar{width:72%;max-width:30px;background:var(--blue);border-radius:3px 3px 0 0;min-height:3px;transition:height .3s}
+.mb-bar.faint{background:var(--border-strong)}
+.mb-label{font-size:9.5px;color:var(--muted);white-space:nowrap}
+.freshness b{color:var(--ink2)}
+
+.empty{color:var(--muted);text-align:center;padding:54px 20px;font-size:13px;line-height:1.6}
+table.plain{width:100%;border-collapse:collapse;font-size:12.5px}
+table.plain th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;padding:9px 11px;border-bottom:1px solid var(--border);background:var(--panel)}
+table.plain td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:top}
+table.plain tr:hover td{background:var(--panel)}
+.cage{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
+.pipe-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--border)}
+.pipe-head h2{font-size:14px;font-weight:700}
+footer{margin-top:36px;font-size:11px;color:var(--faint);text-align:center;line-height:1.7}
+@media(max-width:1080px){.setup-grid{grid-template-columns:1fr 1fr}.sect{border-right:none;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:14px}.stat-strip{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.setup-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="appbar">
+    <div class="brand">
+      <span class="logo">BIDWAY</span>
+      <span class="name">Contractor Recruiter</span>
+      <span class="sub">DLA new-contractor intelligence · v12.1</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">Scan</button>
+      <button class="tab" data-tab="pipeline">Pipeline <span class="count" id="pipeCount">0</span></button>
+      <button class="tab" data-tab="log">Run log</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </div>
+    <div class="theme-toggle" id="themeToggle" title="Switch color theme">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label" id="themeLabel">LIGHT</span>
+    </div>
+  </div>
+
+  <!-- ============ SCAN ============ -->
+  <div class="panel active" id="panel-scan">
+    <div class="coverage" id="coverage"></div>
+    <div class="card">
+      <div class="setup-head">
+        <h1>Target scan setup</h1>
+        <p>Define your target profile and run a scan for new DLA contractors.</p>
+      </div>
+      <div class="setup-grid">
+        <div class="sect">
+          <div class="sect-title"><span class="sect-num">1</span> Award window</div>
+          <div class="field"><label>Awarded from</label><input type="date" id="fFrom"></div>
+          <div class="field"><label>Awarded to</label><input type="date" id="fTo"></div>
+          <div class="field"><label>Max awards to scan</label><input type="number" id="fMaxScan" value="2000" step="1000" min="500" max="200000"><div class="hint">Overall ceiling. Windows over ~45 days auto-split by month for full coverage. A year may need 50k–150k.</div></div>
+          <div class="field"><label>Sort</label><select id="fOrder"><option value="desc" selected>Newest awards first</option><option value="asc">Oldest awards first</option></select><div class="hint">Newest = freshest winners. Oldest = reach the start of your window.</div></div>
+        </div>
+        <div class="sect">
+          <div class="sect-title"><span class="sect-num">2</span> Target filters</div>
+          <div class="field"><div class="row2"><div><label>Min award $</label><input type="number" id="fMin" value="0"></div><div><label>Max award $</label><input type="number" id="fMax" value="50000"></div></div></div>
+          <div class="field"><label>Max DLA / federal contracts</label><input type="number" id="fMaxAwards" value="10"><div class="hint">Companies above this count as Established</div></div>
+          <div class="field"><label>NAICS filter (optional)</label><input type="text" id="fNaics" placeholder="332722, 339991, 423710"><div class="hint">Comma-separated. Blank = all DLA</div></div>
+          <div class="toggle-row"><input type="checkbox" id="fSmall" checked><span>Small business recipients only</span></div>
+          <div class="toggle-row"><input type="checkbox" id="fProductsOnly" checked><span>Products only (exclude service PSCs)</span></div>
+        </div>
+        <div class="sect">
+          <div class="sect-title"><span class="sect-num">3</span> Target tiers (pre-filter)</div>
+          <div class="focus-pills" id="focusPills">
+            <label class="fchk"><input type="checkbox" value="first" checked> First award</label>
+            <label class="fchk"><input type="checkbox" value="emerging" checked> Emerging (2–5)</label>
+            <label class="fchk"><input type="checkbox" value="growing" checked> Growing (6–10)</label>
+            <label class="fchk"><input type="checkbox" value="established"> Established</label>
+          </div>
+          <div class="hint" style="margin-top:8px">Only these tiers are kept, enriched &amp; exported.</div>
+        </div>
+        <div class="sect">
+          <div class="sect-title"><span class="sect-num">4</span> History scope</div>
+          <div class="field"><label>Scope</label><select id="fScope"><option value="dla" selected>DLA only — "first DLA"</option><option value="all">All federal — "first-ever"</option></select><div class="hint">DLA-only surfaces first-time DLA winners who have other-agency history</div></div>
+          <div class="hint" style="margin-top:6px">Phone lookup is set up once in the <b>Settings</b> tab. Everything else runs on public USAspending data — no key needed.</div>
+        </div>
+      </div>
+      <div class="runbar">
+        <button class="btn-run" id="btnRun">▶ Run target scan</button>
+        <button class="btn-run secondary-run" id="btnYear">▶ Scan last 12 months (deep)</button>
+        <div class="runbar-hint">The 12-month button ignores the filter boxes and uses your small-business · products · $0–50k profile — but keeps your selected tiers (box 3). One long run; results cache.</div>
+      </div>
+      <div class="exportbar">
+        <button class="btn danger small" id="btnAbort" style="display:none">■ Abort</button>
+        <button class="btn small" id="btnCsv" disabled>⬇ Export CSV</button>
+        <button class="btn small" id="btnXlsx" disabled>⬇ Export Excel (tabs)</button>
+        <span class="runstatus" id="runStatus"></span>
+        <div class="progress-wrap" id="prog">
+          <div class="progress-label" id="progLabel">Idle</div>
+          <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+        </div>
+      </div>
+      <div class="notice" id="notice"></div>
+      <div class="freshness" id="freshness"></div>
+    </div>
+
+    <div class="stat-strip" id="stats" style="display:none">
+      <div class="stat"><div class="n" id="sAwards">0</div><div class="l">Awards pulled</div></div>
+      <div class="stat"><div class="n" id="sCompanies">0</div><div class="l">Unique companies</div></div>
+      <div class="stat t-first"><div class="n" id="sFirst">0</div><div class="l">First award</div></div>
+      <div class="stat t-emerging"><div class="n" id="sEmerging">0</div><div class="l">Emerging (2–5)</div></div>
+      <div class="stat t-growing"><div class="n" id="sGrowing">0</div><div class="l">Growing (6–10)</div></div>
+    </div>
+    <div id="statsCaption" style="display:none;font-size:11.5px;color:var(--muted);margin:-8px 0 16px;padding:0 2px">These are <b>this run only</b> — each scan pulls a fresh slice. Your cumulative, deduped totals live in the <b>Pipeline</b> tab (and its “Export Excel (all data)” is your complete dataset — no need to combine downloads).</div>
+
+    <div class="card" id="resultsCard" style="display:none">
+      <div class="results-head">
+        <div class="title"><h2>Scan results</h2><span class="sub" id="resultsSub"></span></div>
+        <div class="result-filters">
+          <label class="mini-toggle"><input type="checkbox" id="fltSdvosb"> SDVOSB only</label>
+          <select id="fltSetaside" class="mini-sel" title="Filter by socioeconomic set-aside">
+            <option value="">Any set-aside</option>
+            <option value="SDVOSB">SDVOSB</option>
+            <option value="VOSB">VOSB</option>
+            <option value="WOSB">WOSB</option>
+            <option value="8(A)">8(a)</option>
+            <option value="HUBZONE">HUBZone</option>
+            <option value="SMALL">Small Biz</option>
+          </select>
+          <input id="fltFsc" class="mini-inp" placeholder="FSC e.g. 5305,5330">
+        </div>
+        <div class="filter-pills" id="tierPills">
+          <button class="fpill active" data-tier="all">All</button>
+          <button class="fpill" data-tier="first">First award</button>
+          <button class="fpill" data-tier="emerging">Emerging</button>
+          <button class="fpill" data-tier="growing">Growing</button>
+          <button class="fpill" data-tier="established">Established</button>
+        </div>
+      </div>
+      <div class="tablewrap">
+        <table class="results">
+          <thead><tr>
+            <th>Company / location / IDs</th><th>Status</th><th>Latest award</th><th>FSC</th><th>Window total</th><th>Awards</th><th>POC</th><th>Phone / email</th><th>Sales talking point</th><th>Links</th><th>Pipeline</th>
+          </tr></thead>
+          <tbody id="results"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="pager"></div>
+    </div>
+    <div class="empty" id="scanEmpty">Pick your target tiers and hit <b>Run target scan</b>.<br>If your window lands in DLA's data-load lag, the tool finds the freshest loaded window and shifts automatically.</div>
+  </div>
+
+  <!-- ============ PIPELINE ============ -->
+  <div class="panel" id="panel-pipeline">
+    <div class="card">
+      <div class="results-head" style="margin:0 0 10px">
+        <div class="title"><h2>Saved companies</h2><span class="sub" id="pipeTotals"></span></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn primary small" id="btnPipeNew">⬇ Export latest scan</button>
+          <button class="btn small" id="btnPipeXlsx">⬇ Export Excel (all data)</button>
+          <button class="btn small" id="btnPipeCsv">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="coverage show" id="pipeCoverageNote" style="margin:0 0 12px">This is your full, deduped tracker — every target from every scan, combined automatically. The Scan tab's numbers are per-run; <b>these are your real totals.</b></div>
+      <div class="valuecard" id="valueCard">
+        <div class="valuecard-head">💰 Lead value model <span class="vc-sub">— what this pipeline is worth to a buyer at their pricing</span></div>
+        <div class="valuecard-inputs">
+          <label>Customer $/mo<input type="number" id="vmArpu" value="150" step="10" min="0"></label>
+          <label>Avg months retained<input type="number" id="vmMonths" value="12" step="1" min="1"></label>
+          <label>Conversion %<input type="number" id="vmConv" value="3" step="0.5" min="0" max="100"></label>
+          <label>Your bounty / convert $<input type="number" id="vmBounty" value="150" step="10" min="0"></label>
+        </div>
+        <div class="valuecard-out" id="valueOut"></div>
+        <div class="lb-row" id="leadBreakout"></div>
+      </div>
+      <div class="valuecard" id="financeCard">
+        <div class="valuecard-head">🏦 Net-30 financing fit <span class="vc-sub">— who to offer working-capital terms, scored by contract velocity</span></div>
+        <div class="valuecard-out" id="financeOut"></div>
+        <div class="lb-row" id="financeBreakout"></div>
+        <div class="fp-divider"></div>
+        <div class="valuecard-head" style="margin-bottom:10px">Terms pricing <span class="vc-sub">— advance a share of the contract; your premium is the convenience</span></div>
+        <div class="valuecard-inputs">
+          <label>Factor rate %/30d<input type="number" id="fpRate" value="2.5" step="0.25" min="0"></label>
+          <label>Your broker share %<input type="number" id="fpShare" value="40" step="5" min="0" max="100"></label>
+          <label>Sample contract $<input type="number" id="fpSample" value="25000" step="1000" min="0"></label>
+        </div>
+        <div class="valuecard-out" id="financePricing"></div>
+      </div>
+      <div style="overflow-x:auto">
+      <table class="plain" id="pipeTable">
+        <thead><tr>
+          <th>Last award date</th><th>Scanned</th><th>Company</th><th>UEI / CAGE</th><th>Location</th><th>POC / Phone</th><th>Socio</th><th>Total</th><th>Tier</th><th>Last $</th><th>Status</th><th>Notes</th><th></th>
+        </tr></thead>
+        <tbody id="pipeBody"></tbody>
+      </table>
+      </div>
+      <div class="empty" id="pipeEmpty">No companies saved yet. Run a scan — every result lands here automatically.</div>
+    </div>
+  </div>
+
+  <!-- ============ LOG ============ -->
+  <div class="panel" id="panel-log">
+    <div class="card">
+      <h2 style="font-size:15px;margin-bottom:10px">Run history</h2>
+      <table class="plain">
+        <thead><tr><th>When</th><th>Window</th><th>Awards</th><th>Companies</th><th>First</th><th>Emerging</th><th>Growing</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+      <div class="empty" id="logEmpty">No runs logged yet.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-settings">
+    <div class="card" style="max-width:640px">
+      <div class="results-head" style="margin:0 0 14px"><div class="title"><h2>Settings</h2><span class="sub">Phone enrichment · saved on this computer only</span></div></div>
+      <div style="padding:0 20px 20px">
+        <div class="field"><label>Scrape.do token — phone &amp; CAGE lookup</label><input type="password" id="fScrapeToken" placeholder="paste your Scrape.do token"><div class="hint">Pulls each vendor's phone (and CAGE) from the public FPDS feed via the Scrape.do proxy. Free tier at scrape.do. Saved in this browser only — never written into the shared file.</div></div>
+        <div style="margin-top:4px" id="tokenStatus" class="hint"></div>
+        <div class="toggle-row" style="margin-top:12px"><input type="checkbox" id="fForcePhone"><span>Re-check phones on every scan (ignore the 7-day cache)</span></div>
+        <div class="toggle-row"><input type="checkbox" id="fEmail"><span>Also look up email (best-effort — slower, uses extra scrape credits)</span></div>
+        <div class="coverage show" style="margin:16px 0 0">With a token saved, phone + CAGE fill in automatically during each scan, cached 7 days per company so reruns don't re-spend credits. No token → the app runs fully keyless and the Phone column stays blank (use the <b>Find phone</b> link on any row).</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Data: USAspending.gov public API (no key required) · Optional phone/CAGE enrichment: FPDS public feed via Scrape.do (token in Settings).<br>
+    Award-history counts cover all federal prime contracts since FY2008. Weekly cadence recommended — NEW badge marks companies not seen in any prior run.
+  </footer>
+</div>
+
+<script>
+'use strict';
+/* ================= IndexedDB ================= */
+const DB_NAME='bidway_v1', DB_VER=1;
+let db=null;
+function openDB(){return new Promise((res,rej)=>{
+  let r;
+  try{ r=indexedDB.open(DB_NAME,DB_VER); }
+  catch(e){ rej(e); return; }
+  if(!r){ rej(new Error('IndexedDB unavailable')); return; }
+  r.onupgradeneeded=e=>{
+    const d=e.target.result;
+    if(!d.objectStoreNames.contains('recipients'))d.createObjectStore('recipients',{keyPath:'uei'});
+    if(!d.objectStoreNames.contains('runs'))d.createObjectStore('runs',{keyPath:'id',autoIncrement:true});
+    if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv',{keyPath:'k'});
+  };
+  r.onsuccess=e=>{db=e.target.result;res(db)};
+  r.onerror=()=>rej(r.error||new Error('IndexedDB open failed'));
+  r.onblocked=()=>rej(new Error('IndexedDB blocked'));
+});}
+let _dbOpening=null;
+function ensureDB(){
+  if(db)return Promise.resolve(db);
+  if(!_dbOpening)_dbOpening=openDB().catch(e=>{_dbOpening=null;throw e;});
+  return _dbOpening;
+}
+async function idb(store,mode,fn){await ensureDB();return new Promise((res,rej)=>{
+  const tx=db.transaction(store,mode), s=tx.objectStore(store);
+  const out=fn(s);
+  tx.oncomplete=()=>res(out&&out._v!==undefined?out._v:out);
+  tx.onerror=()=>rej(tx.error);
+});}
+async function idbGetAll(store){await ensureDB();return new Promise((res,rej)=>{
+  const tx=db.transaction(store,'readonly');
+  const rq=tx.objectStore(store).getAll();
+  rq.onsuccess=()=>res(rq.result||[]);
+  rq.onerror=()=>rej(rq.error);
+});}
+async function idbGet(store,key){await ensureDB();return new Promise((res,rej)=>{
+  const tx=db.transaction(store,'readonly');
+  const rq=tx.objectStore(store).get(key);
+  rq.onsuccess=()=>res(rq.result||null);
+  rq.onerror=()=>rej(rq.error);
+});}
+async function idbPut(store,val){await ensureDB();return new Promise((res,rej)=>{
+  const tx=db.transaction(store,'readwrite');
+  tx.objectStore(store).put(val);
+  tx.oncomplete=()=>res();
+  tx.onerror=()=>rej(tx.error);
+});}
+async function idbDel(store,key){await ensureDB();return new Promise((res,rej)=>{
+  const tx=db.transaction(store,'readwrite');
+  tx.objectStore(store).delete(key);
+  tx.oncomplete=()=>res();
+  tx.onerror=()=>rej(tx.error);
+});}
+
+/* ================= Helpers ================= */
+const $=id=>document.getElementById(id);
+// ===== Color themes (Dark · Gray · Light · Army · KOOL), ported from R!CON =====
+const THEMES=['dark','gray','light','army','kool'];
+function getCurrentTheme(){ for(const t of THEMES) if(document.documentElement.classList.contains(t)) return t; return 'light'; }
+function applyTheme(name){
+  if(!THEMES.includes(name))name='light';
+  document.documentElement.className=name;
+  const lbl=document.getElementById('themeLabel'); if(lbl)lbl.textContent=name==='kool'?'KOOL':name.toUpperCase();
+  try{localStorage.setItem('bidway_theme',name);}catch(e){}
+}
+function toggleTheme(){
+  const cur=getCurrentTheme();
+  const next = cur==='dark'?'gray' : cur==='gray'?'light' : cur==='light'?'army' : cur==='army'?'kool' : 'dark';
+  applyTheme(next);
+}
+(function restoreTheme(){ try{ applyTheme(localStorage.getItem('bidway_theme')||'light'); }catch(e){ applyTheme('light'); } })();
+document.addEventListener('DOMContentLoaded',()=>{ const tt=document.getElementById('themeToggle'); if(tt)tt.addEventListener('click',toggleTheme); applyTheme(getCurrentTheme()); });
+const fmt$=n=>'$'+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const todayISO=()=>new Date().toISOString().slice(0,10);
+function daysAgoISO(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function setProgress(pct,label){$('prog').classList.add('show');$('progFill').style.width=pct+'%';$('progLabel').textContent=label;}
+function showNotice(msg){const n=$('notice');n.innerHTML=msg;n.classList.add('show');}
+function clearNotice(){$('notice').classList.remove('show');$('notice').innerHTML='';}
+
+/* ================= State ================= */
+let scanResults=[];      // [{uei,name,recipientId,city,state,totalContracts,tier,isNew,cage,poc,awards:[...],seBadges,talk}]
+let aborted=false;
+let tierFilter='all';
+let page=1, rowsPerPage=10;
+let focusTiers=new Set(['first','emerging','growing']); // pre-query focus, read from checkboxes at run time
+const TIERS={first:{label:'First Award',cls:'first'},emerging:{label:'Emerging',cls:'emerging'},growing:{label:'Growing',cls:'growing'},established:{label:'Established',cls:'established'}};
+function classify(n,maxThreshold){
+  if(n<=1)return'first';
+  if(n<=5)return'emerging';
+  if(n<=Math.max(6,maxThreshold))return'growing';
+  return'established';
+}
+
+// USAspending business_types -> sales-friendly socioeconomic badges (priority order).
+const SE_MAP=[
+  {k:'service_disabled_veteran_owned_business',label:'SDVOSB',cls:'se-sdvosb'},
+  {k:'veteran_owned_business',label:'VOSB',cls:'se-vosb'},
+  {k:'women_owned_small_business',label:'WOSB',cls:'se-wosb'},
+  {k:'woman_owned_business',label:'WOB',cls:'se-wosb'},
+  {k:'8a_program_participant',label:'8(a)',cls:'se-8a'},
+  {k:'historically_underutilized_business_firm',label:'HUBZone',cls:'se-hz'},
+  {k:'self_certified_small_disadvanted_business',label:'SDB',cls:'se-sdb'},
+  {k:'emerging_small_business',label:'Emerging SB',cls:'se-sb'},
+  {k:'minority_owned_business',label:'Minority-owned',cls:'se-min'},
+  {k:'small_business',label:'Small Biz',cls:'se-sb'}
+];
+function badgesFromTypes(types){
+  const set=new Set(types||[]);
+  const out=[];
+  for(const m of SE_MAP){ if(set.has(m.k)) out.push(m); }
+  // de-dupe WOSB/WOB collisions, keep at most 4 for a clean card
+  const seen=new Set(); const dedup=[];
+  for(const b of out){ if(seen.has(b.label))continue; seen.add(b.label); dedup.push(b); }
+  return dedup.slice(0,4);
+}
+
+// Build a ready-to-paste sales talking point from the company's freshest award + history + status.
+function buildTalkingPoint(c){
+  const a=c.awards&&c.awards[0];
+  const tierWord={first:'just landed their FIRST federal contract',emerging:'are early-stage federal winners (only '+c.totalContracts+' awards to date)',growing:'are a growing DLA supplier ('+c.totalContracts+' awards)',established:'are an established DLA supplier'}[c.tier]||'recently won a DLA award';
+  const seWord=(c.seBadges&&c.seBadges.length)?(' They\u2019re a '+c.seBadges.map(b=>b.label).join('/')+' firm.'):'';
+  const loc=[c.city,c.state].filter(Boolean).join(', ');
+  let item='';
+  if(a){
+    const desc=a.desc?(' for '+a.desc):'';
+    const nsn=a.id?(' (award '+a.id+')'):'';
+    item=' Their latest: a '+fmt$(a.amount)+' DLA award'+desc+nsn+' on '+a.date+'.';
+  }
+  return esc(c.name)+(loc?' ('+esc(loc)+')':'')+' '+tierWord+'.'+esc(item)+esc(seWord)+
+    ' As a fresh DLA awardee, they\u2019re prime for BidWay to help them scale repeat wins.';
+}
+
+// Concurrency-limited runner with retry/backoff — fixes ERR_EMPTY_RESPONSE from bursts.
+async function runPool(items, worker, {concurrency=5, onProgress, attempts=3, pacing=70}={}){
+  let idx=0, done=0;
+  async function lane(){
+    while(idx<items.length && !aborted){
+      const myIdx=idx++;
+      let attempt=0;
+      while(attempt<attempts){
+        try{ await worker(items[myIdx], myIdx); break; }
+        catch(e){ attempt++; if(attempt>=attempts)break; await sleep(Math.min(8000, 500*Math.pow(2,attempt)) + Math.random()*300); }
+      }
+      done++;
+      if(onProgress)onProgress(done, items.length);
+      await sleep(pacing + Math.random()*pacing); // pacing to avoid USAspending rate-limit drops
+    }
+  }
+  const lanes=[];
+  for(let i=0;i<Math.min(concurrency,items.length);i++)lanes.push(lane());
+  await Promise.all(lanes);
+}
+
+/* ================= USAspending API ================= */
+const USA='https://api.usaspending.gov/api/v2';
+const FULL_FIELDS=["Award ID","Recipient Name","Description","Start Date","Award Amount","Awarding Sub Agency","Contract Award Type","recipient_id","Recipient UEI","Recipient Location","NAICS","PSC","generated_internal_id"];
+const MIN_FIELDS=["Award ID","Recipient Name","Description","Start Date","Award Amount","Awarding Sub Agency","recipient_id","Recipient UEI","generated_internal_id"];
+
+// The API matches agency names as exact keyword strings against what's INDEXED on award
+// documents — observed to disagree with the reference/autocomplete names. So we discover
+// the real indexed names from actual award data, then VERIFY each candidate returns awards
+// before trusting it. Multiple DLA entries (e.g. per buying command) are OR'd together.
+let AGENCY_FILTERS=[{type:'awarding',tier:'subtier',name:'Defense Logistics Agency'}]; // last-resort fallback
+const DLA_RX=/defense\s*logistics|^\s*DLA\b/i;
+
+async function countWithAgencies(agArr,days){
+  try{
+    const r=await postJSON(USA+'/search/spending_by_award_count/',{filters:{
+      agencies:agArr,award_type_codes:['A','B','C','D'],
+      time_period:[{start_date:daysAgoISO(days),end_date:todayISO()}]
+    }});
+    return (r.results&&((r.results.contracts||0)+(r.results.idvs||0)))||0;
+  }catch(e){console.warn('[BidWay] verify count failed:',e.message);return 0;}
+}
+
+async function resolveDlaAgency(){
+  try{
+    const c=await idbGet('kv','dlaAgency');
+    if(c&&c.v&&c.at&&(Date.now()-c.at)<30*24*3600*1000){
+      AGENCY_FILTERS=Array.isArray(c.v)?c.v:[c.v];
+      return AGENCY_FILTERS;
+    }
+  }catch(e){}
+  const candidates=[];
+  const pushCand=n=>{if(n&&!candidates.includes(n))candidates.push(n);};
+
+  // 1) Ground truth: aggregate sub-agency names exactly as indexed on award documents.
+  const win=[{start_date:daysAgoISO(120),end_date:todayISO()}];
+  const discoveryFilters=[
+    {agencies:[{type:'awarding',tier:'toptier',name:'Department of Defense'}],award_type_codes:['A','B','C','D'],time_period:win},
+    {award_type_codes:['A','B','C','D'],time_period:win}
+  ];
+  for(const f of discoveryFilters){
+    let worked=false;
+    for(const lvl of ['awards',null]){
+      try{
+        const body={filters:f,category:'awarding_subagency',limit:100,page:1};
+        if(lvl)body.spending_level=lvl;
+        const r=await postJSON(USA+'/search/spending_by_category/awarding_subagency/',body);
+        const names=(r.results||[]).map(x=>x.name).filter(Boolean);
+        console.log('[BidWay] indexed sub-agency names sample:',JSON.stringify(names.slice(0,25)));
+        names.filter(n=>DLA_RX.test(n)).forEach(pushCand);
+        worked=true;break;
+      }catch(e){console.warn('[BidWay] subagency discovery failed:',e.message);}
+    }
+    if(worked&&candidates.length)break;
+  }
+
+  // 2) Reference/autocomplete candidates (may disagree with index; verified below anyway).
+  if(!candidates.length){
+    for(const ep of ['awarding_agency_office','awarding_agency']){
+      try{
+        const r=await postJSON(USA+'/autocomplete/'+ep+'/',{search_text:'Defense Logistics',limit:20});
+        for(const x of (r.results||[])){
+          const s=x.subtier_agency;
+          if(s&&s.name&&DLA_RX.test(s.name))pushCand(s.name);
+        }
+        if(candidates.length)break;
+      }catch(e){console.warn('[BidWay] agency autocomplete failed ('+ep+'):',e.message);}
+    }
+  }
+  pushCand('Defense Logistics Agency'); // last resort
+
+  // 3) Verify: keep every candidate that actually returns awards in the last 120 days.
+  const verified=[];
+  for(const name of candidates){
+    setProgress(1,'Verifying agency name \u2014 \u201c'+name+'\u201d\u2026');
+    const a={type:'awarding',tier:'subtier',name};
+    const n=await countWithAgencies([a],120);
+    console.log('[BidWay] candidate',JSON.stringify(name),'\u2192',n,'awards / 120d');
+    if(n>0)verified.push(a);
+    await sleep(150);
+  }
+  if(verified.length){
+    AGENCY_FILTERS=verified;
+    await idbPut('kv',{k:'dlaAgency',v:verified,at:Date.now()});
+    console.log('[BidWay] using agency filters:',JSON.stringify(verified));
+  }else{
+    console.warn('[BidWay] NO candidate verified \u2014 falling back to reference name. Diagnostics will flag the agency filter if it still zeroes out.');
+    AGENCY_FILTERS=[{type:'awarding',tier:'subtier',name:'Defense Logistics Agency'}];
+  }
+  return AGENCY_FILTERS;
+}
+
+// dateType: null (API default: action_date>=start AND date_signed<=end), 'action_date',
+// 'new_awards_only', or 'date_signed'. win: optional {from,to} override.
+function buildFilters(p,dateType,win){
+  const from=(win&&win.from)||p.from, to=(win&&win.to)||p.to;
+  const tp={start_date:from,end_date:to};
+  if(dateType)tp.date_type=dateType;
+  const f={
+    agencies:AGENCY_FILTERS.map(a=>Object.assign({},a)),
+    award_type_codes:['A','B','C','D'],
+    award_amounts:[{lower_bound:p.min,upper_bound:p.max}],
+    time_period:[tp]
+  };
+  if(p.small)f.recipient_type_names=['small_business'];
+  if(p.naics.length)f.naics_codes={require:p.naics};
+  if(p.productsOnly)f.psc_codes={require:[['Product']]}; // Tier1 "Product" = PSC codes 0-9 (supplies); excludes letter-prefixed service codes
+  return f;
+}
+
+let DEBUG_POST=false;
+let _usaCooldownUntil=0, _usaFailStreak=0;
+// All USAspending calls funnel through here. A big pull (hundreds of award pages + thousands of
+// count calls) trips USAspending's rate limiter, which returns header-less error responses that
+// Chrome reports as "CORS / no ACAO". So we govern globally: back off hard on any transient
+// failure and make the WHOLE run pace down until the API recovers, then speed back up.
+async function postJSON(url,body){
+  if(DEBUG_POST)console.log('[BidWay] POST',url,JSON.stringify(body));
+  const wait=_usaCooldownUntil-Date.now();
+  if(wait>0)await sleep(wait);
+  let attempt=0;
+  while(true){
+    try{
+      const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(r.status===429||r.status===503||r.status===502){const e=new Error('throttled '+r.status);e.status=r.status;e.transient=true;throw e;}
+      if(!r.ok){const t=await r.text().catch(()=>'');const e=new Error('HTTP '+r.status+' '+t.slice(0,200));e.status=r.status;throw e;}
+      _usaFailStreak=Math.max(0,_usaFailStreak-1);
+      return r.json();
+    }catch(e){
+      attempt++;
+      // "Failed to fetch" (CORS-on-throttle / dropped connection), 429/503/502, or 5xx = transient
+      const transient = e.transient || /failed to fetch|networkerror|load failed/i.test(e.message||'') || e.status===429 || e.status===503 || e.status===502 || e.status===500;
+      if(!transient || attempt>=6) throw e;
+      _usaFailStreak++;
+      const cd=Math.min(30000, 1500*Math.pow(1.8,_usaFailStreak)); // escalating global cooldown
+      _usaCooldownUntil=Date.now()+cd;
+      if(typeof setProgress==='function'){try{$('progLabel').textContent='USAspending busy \u2014 backing off '+Math.round(cd/1000)+'s\u2026';}catch(_){}}
+      await sleep(cd + Math.random()*500);
+    }
+  }
+}
+
+async function fetchAwardsPage(p,page,opts){
+  const body={
+    filters:buildFilters(p,opts.dateType,opts.win),
+    fields:opts.fullFields?FULL_FIELDS:MIN_FIELDS,
+    page, limit:100, sort:'Start Date', order:p.order||'desc', subawards:false
+  };
+  return postJSON(USA+'/search/spending_by_award/',body);
+}
+
+// Split a date range into calendar-month sub-windows (UTC, no off-by-one).
+function monthChunks(from,to){
+  const out=[];
+  let s=new Date(from+'T00:00:00Z'); const end=new Date(to+'T00:00:00Z');
+  if(isNaN(s)||isNaN(end)||s>end)return [{from,to}];
+  while(s<=end){
+    const me=new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth()+1, 0));
+    const e=me<end?me:end;
+    out.push({from:s.toISOString().slice(0,10), to:e.toISOString().slice(0,10)});
+    s=new Date(Date.UTC(e.getUTCFullYear(), e.getUTCMonth(), e.getUTCDate()+1));
+  }
+  return out;
+}
+function spanDays(from,to){ return Math.round((new Date(to+'T00:00:00Z')-new Date(from+'T00:00:00Z'))/86400000); }
+function nextDay(d){ const x=new Date(d+'T00:00:00Z'); x.setUTCDate(x.getUTCDate()+1); return x.toISOString().slice(0,10); }
+function midDate(from,to){ const a=new Date(from+'T00:00:00Z'),b=new Date(to+'T00:00:00Z'); return new Date((a.getTime()+b.getTime())/2).toISOString().slice(0,10); }
+// One cheap call: how many awards match this window? Lets us pre-split before hitting the 10k ceiling.
+async function windowCount(p,win,mode){
+  const r=await postJSON(USA+'/search/spending_by_award_count/',{filters:buildFilters(p,mode.dateType,win),subawards:false});
+  const x=r&&r.results||{}; return (x.contracts||0)+(x.idvs||0);
+}
+// USAspending/Elasticsearch caps any single query at 10,000 records. If a window holds more,
+// recursively split it by date until each piece is under the ceiling, so coverage is complete.
+async function pullWindowAdaptive(p,win,mode,accMap,cap,depth){
+  if(aborted||accMap.size>=cap)return;
+  let cnt=null; try{ cnt=await windowCount(p,win,mode); }catch(_){}
+  if(cnt!=null && cnt>9500 && spanDays(win.from,win.to)>=1 && (depth||0)<8){
+    const mid=midDate(win.from,win.to);
+    await pullWindowAdaptive(p,{from:win.from,to:mid},mode,accMap,cap,(depth||0)+1);
+    await pullWindowAdaptive(p,{from:nextDay(mid),to:win.to},mode,accMap,cap,(depth||0)+1);
+    return;
+  }
+  await pageWindow(p,win,mode,accMap,cap);
+}
+
+// Probe which date basis returns data for a window (action_date is best for DLA delivery orders).
+async function detectMode(p,win){
+  const modes=[
+    {dateType:'action_date',fullFields:true,desc:'latest action date in window'},
+    {dateType:null,fullFields:true,desc:'any activity in window'},
+    {dateType:'new_awards_only',fullFields:true,desc:'newly-signed awards in window'},
+    {dateType:null,fullFields:false,desc:'any activity (compact)'}
+  ];
+  let lastErr=null, sawEmpty=false;
+  for(const m of modes){
+    try{
+      const resp=await fetchAwardsPage(p,1,Object.assign({win},m));
+      if((resp.results||[]).length===0){ sawEmpty=true; continue; }
+      return {mode:m};
+    }catch(e){ lastErr=e; if(e.status!==400&&e.status!==422)throw e; }
+  }
+  if(sawEmpty)return {empty:true};
+  throw lastErr||new Error('USAspending request failed');
+}
+
+// Page one window fully (until hasNext is false, the overall cap, or a hard page safety), deduping into accMap.
+async function pageWindow(p, win, mode, accMap, cap){
+  let page=0, hasNext=true;
+  while(hasNext && !aborted && accMap.size<cap){
+    page++;
+    const r=await fetchAwardsPage(p,page,Object.assign({win},mode));
+    for(const a of (r.results||[])){
+      const k=(a['Award ID']||'')+'|'+(a.generated_internal_id||a['Recipient UEI']||'');
+      if(!accMap.has(k))accMap.set(k,a);
+    }
+    hasNext=r.page_metadata&&r.page_metadata.hasNext;
+    await sleep(110);
+    if(page>=300)break; // ~30k per window safety against the API result-window ceiling
+  }
+  return hasNext;
+}
+
+// Pull awards across the window. Short windows: one paged pull. Long windows (a quarter, a year):
+// split into months and page each fully so coverage is complete regardless of DLA's volume.
+async function fetchAllAwards(p){
+  const fullWin={from:p.from,to:p.to};
+  const det=await detectMode(p, fullWin);
+  if(det.empty)return []; // runScan decides whether to auto-shift or explain
+  const mode=det.mode;
+  if(mode.dateType!=='action_date')showNotice('Note: matched awards by <b>'+esc(mode.desc)+'</b> (the action-date basis returned nothing). Check each award\u2019s Start Date.');
+  const cap=p.maxScan||2000;
+  const accMap=new Map();
+  const span=spanDays(p.from,p.to);
+  let chunks = span>45 ? monthChunks(p.from,p.to) : [fullWin];
+  if((p.order||'desc')==='desc' && chunks.length>1) chunks.reverse(); // newest months first
+  const perMonthCap = chunks.length>1 ? Math.max(2000, Math.ceil(cap/chunks.length)) : cap;
+  if(chunks.length>1)showNotice('<b>Deep scan:</b> covering '+chunks.length+' months with up to <b>'+perMonthCap.toLocaleString()+'</b> awards each, so every month gets real coverage \u2014 not just the newest. One long run; everything caches.');
+  let partial=false;
+  for(let ci=0; ci<chunks.length && !aborted && accMap.size<cap; ci++){
+    const win=chunks[ci];
+    const monthCap = Math.min(cap, accMap.size + perMonthCap); // this month adds at most perMonthCap
+    setProgress(2+Math.round(26*ci/chunks.length), 'Pulling awards \u2014 '+(chunks.length>1?('month '+(ci+1)+'/'+chunks.length+' ('+win.from.slice(0,7)+')'):'paging window')+' \u2014 '+accMap.size.toLocaleString()+' so far');
+    try{
+      await pullWindowAdaptive(p, win, mode, accMap, monthCap, 0);
+    }catch(e){
+      partial=true; // a month gave out after retries — keep what we have and move on
+    }
+  }
+  if(partial&&accMap.size)showNotice('Heads up: USAspending throttled part of the pull, so coverage is partial \u2014 <b>'+accMap.size.toLocaleString()+'</b> awards captured. What completed is processed and cached; rerun later (or a smaller window) to fill gaps.');
+  else if(partial)throw new Error('Failed to fetch');
+  if(accMap.size>=cap)showNotice('Reached your overall scan cap of '+cap.toLocaleString()+' awards (up to '+perMonthCap.toLocaleString()+' per month). Raise "Max awards to scan" for deeper per-month coverage, or narrow the $ band.');
+  return [...accMap.values()];
+}
+
+// When every variant of the real query returns zero, (1) peel filters off one at a time to
+// find which one zeroed it out, then (2) probe backward to locate DLA's freshest available
+// data and offer a one-click window shift (handles USAspending's agency load lag).
+async function diagnoseZero(p){
+  setProgress(20,'Zero results \u2014 running diagnostics\u2026');
+  const steps=[
+    {label:'As configured (action-date basis)',strip:[]},
+    {label:'\u2026also without the $ amount band',strip:['award_amounts']},
+    {label:'\u2026also without the products-only filter',strip:['award_amounts','psc_codes']},
+    {label:'\u2026also without the small-business filter',strip:['award_amounts','psc_codes','recipient_type_names']},
+    {label:'\u2026also without the NAICS filter',strip:['award_amounts','psc_codes','recipient_type_names','naics_codes']},
+    {label:'\u2026also without the DLA agency filter (any agency)',strip:['award_amounts','psc_codes','recipient_type_names','naics_codes','agencies']}
+  ];
+  const lines=[];let culpritFound=false,agencyCulprit=false;
+  for(const s of steps){
+    const f=buildFilters(p,'action_date');
+    if(s.strip.includes('award_amounts'))delete f.award_amounts;
+    if(s.strip.includes('psc_codes'))delete f.psc_codes;
+    if(s.strip.includes('recipient_type_names'))delete f.recipient_type_names;
+    if(s.strip.includes('naics_codes'))delete f.naics_codes;
+    if(s.strip.includes('agencies'))delete f.agencies;
+    let n;
+    try{
+      const r=await postJSON(USA+'/search/spending_by_award_count/',{filters:f});
+      n=(r.results&&((r.results.contracts||0)+(r.results.idvs||0)))||0;
+    }catch(e){n='request error ('+esc(String(e.message).slice(0,120))+')';}
+    lines.push('<li>'+esc(s.label)+': <b>'+(typeof n==='number'?n.toLocaleString()+' awards':n)+'</b></li>');
+    await sleep(150);
+    if(typeof n==='number'&&n>0){
+      const removed=s.strip[s.strip.length-1];
+      const names={award_amounts:'the $ amount band',psc_codes:'the products-only filter',recipient_type_names:'the small-business filter',naics_codes:'the NAICS filter',agencies:'the DLA agency filter'};
+      lines.push('<li><b>\u2192 In this window, '+esc(names[removed]||removed)+' is what removes every result.</b></li>');
+      culpritFound=true; agencyCulprit=(removed==='agencies'); break;
+    }
+  }
+  if(!culpritFound)lines.push('<li><b>\u2192 Even the loosest query returns zero in this window.</b></li>');
+  showNotice('<b>Diagnostics \u2014 filter-by-filter counts</b> (window '+esc(p.from)+' \u2192 '+esc(p.to)+', agency \u201c'+esc(AGENCY_FILTERS.map(a=>a.name).join('\u201d, \u201c'))+'\u201d):<ul style="margin:6px 0 0 18px">'+lines.join('')+'</ul>');
+
+  // The signature lag pattern: agency removal "fixes" it AND DLA verified fine over 120d.
+  // That means DLA's recent data simply isn't loaded yet. Find where it actually lives.
+  await probeFreshness(p);
+}
+
+// Step backward in 30-day action_date buckets (with the user's full filters) to find the most
+// recent window that actually contains DLA awards. Pure: returns {buckets, freshest}.
+async function findFreshestWindow(p){
+  const buckets=[];
+  for(let i=0;i<6&&!aborted;i++){
+    const to=daysAgoISO(30*i), from=daysAgoISO(30*(i+1));
+    let n=0;
+    try{
+      const r=await postJSON(USA+'/search/spending_by_award_count/',{filters:buildFilters(p,'action_date',{from,to})});
+      n=(r.results&&((r.results.contracts||0)+(r.results.idvs||0)))||0;
+    }catch(e){}
+    buckets.push({from,to,n});
+    await sleep(150);
+    if(n>0&&i>0)break; // found the freshest populated older bucket
+  }
+  return {buckets, freshest:buckets.find(b=>b.n>0)||null};
+}
+let _pendingWin=null;
+window.bwScanFreshest=function(){
+  if(!_pendingWin)return;
+  $('fFrom').value=_pendingWin.from; $('fTo').value=_pendingWin.to;
+  runScan(true);
+};
+async function probeFreshness(p){
+  setProgress(25,'Locating DLA\u2019s freshest available data\u2026');
+  const {buckets,freshest}=await findFreshestWindow(p);
+  const rows=buckets.map(b=>'<li>'+esc(b.from)+' \u2192 '+esc(b.to)+': <b>'+b.n.toLocaleString()+'</b> matching DLA awards</li>').join('');
+  let msg='<b>DLA data-freshness probe</b> (your filters, by 30-day action-date window):<ul style="margin:6px 0 0 18px">'+rows+'</ul>';
+  if(freshest&&(freshest.from!==p.from||freshest.to!==p.to)){
+    _pendingWin={from:freshest.from,to:freshest.to};
+    msg+='<p style="margin:10px 0 0"><b>Why this window is empty:</b> USAspending ingests DLA\u2019s awards on a lag, so the most recent calendar weeks aren\u2019t loaded yet. Your filters match <b>'+freshest.n.toLocaleString()+'</b> DLA awards in the freshest loaded window ('+esc(freshest.from)+' \u2192 '+esc(freshest.to)+').</p>'+
+      '<p style="margin:8px 0 0"><button onclick="window.bwScanFreshest()" style="font:inherit;font-weight:700;background:var(--ink);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer">\u25b6 Scan freshest loaded window ('+esc(freshest.from)+' \u2192 '+esc(freshest.to)+')</button></p>';
+  }else if(!freshest){
+    msg+='<p style="margin:10px 0 0">No DLA awards matched your $ band / filters in any of the last 6 months. Try widening the amount band or removing NAICS, then rerun.</p>';
+  }
+  const prev=$('notice').innerHTML;
+  showNotice(prev+'<hr style="border:none;border-top:1px solid var(--border);margin:12px 0">'+msg);
+}
+
+async function fetchContractCount(uei,scope){
+  const filters={
+    recipient_search_text:[uei],
+    award_type_codes:['A','B','C','D'],
+    time_period:[{start_date:'2007-10-01',end_date:todayISO()}]
+  };
+  if(scope==='dla')filters.agencies=AGENCY_FILTERS.map(a=>Object.assign({},a)); // count DLA contracts only
+  const r=await postJSON(USA+'/search/spending_by_award_count/',{filters});
+  const res=r.results||{};
+  return (res.contracts||0)+(res.idvs||0);
+}
+
+// Recipient profile -> socioeconomic business_types (SDVOSB/WOSB/8(a)/HUBZone/etc.).
+async function fetchRecipientDetail(recipientId){
+  if(!recipientId)throw new Error('no recipient_id');
+  const resp=await fetch(USA+'/recipient/'+encodeURIComponent(recipientId)+'/',{method:'GET'});
+  if(!resp.ok)throw new Error('recipient HTTP '+resp.status);
+  const j=await resp.json();
+  return {types:j.business_types||[]};
+}
+
+/* ================= SAM.gov enrichment (optional) ================= */
+let _samDiagDone=false;
+function deepFindPhone(obj,depth){
+  // Walk the SAM entity object for any field that looks like a phone number.
+  if(!obj||typeof obj!=='object'||depth>5)return '';
+  for(const k of Object.keys(obj)){
+    const v=obj[k];
+    if(typeof v==='string'){
+      if(/phone/i.test(k)&&/\d{3}.*\d{4}/.test(v))return v;
+    }else if(v&&typeof v==='object'){
+      const f=deepFindPhone(v,depth+1); if(f)return f;
+    }
+  }
+  return '';
+}
+async function fetchSamEntity(uei,key){
+  const url='https://api.sam.gov/entity-information/v3/entities?api_key='+encodeURIComponent(key)+'&ueiSAM='+encodeURIComponent(uei);
+  const r=await fetch(url);
+  if(!r.ok)throw new Error('SAM HTTP '+r.status);
+  const j=await r.json();
+  const e=(j.entityData||[])[0];
+  if(!e)return null;
+  const reg=e.entityRegistration||{}, core=e.coreData||{}, poc=e.pointsOfContact||{};
+  const pocList=[poc.governmentBusinessPOC,poc.electronicBusinessPOC,poc.alternateGovernmentBusinessPOC,poc.alternateElectronicBusinessPOC,poc.pastPerformancePOC,poc.alternatePastPerformancePOC].filter(Boolean);
+  const phoneOf=o=>o&&(o.usPhoneNumber||o.phone||o.usaPhoneNumber||o.nonUsPhoneNumber||o.usPhoneExtension&&o.usPhoneNumber||'')||'';
+  let phone='';
+  for(const o of pocList){ phone=phoneOf(o); if(phone)break; }
+  if(!phone)phone=deepFindPhone(e,0); // last resort: deep scan
+  const named=pocList.find(o=>o.firstName||o.lastName)||{};
+  // One-time diagnostic so the user can see exactly what their key returns
+  if(!_samDiagDone){
+    _samDiagDone=true;
+    const pocKeys=Object.keys(poc);
+    const hasPhoneField=pocList.some(o=>Object.keys(o).some(k=>/phone/i.test(k)));
+    console.log('[BidWay][SAM] sample entity keys:',Object.keys(e).join(', '));
+    console.log('[BidWay][SAM] pointsOfContact keys:',pocKeys.join(', ')||'(none returned)');
+    console.log('[BidWay][SAM] POC objects expose a phone field?',hasPhoneField,'| extracted phone:',phone||'(none)');
+    if(!hasPhoneField&&!phone){
+      showNotice('SAM diagnostic: your API key returns POC <b>names but not phone numbers</b> (SAM gates phone/email behind FOUO access). The \u260e column will be blank \u2014 use the per-card "Find phone" link instead. (Full detail in the browser console.)');
+    }else if(phone){
+      showNotice('SAM diagnostic: \u2713 your key <b>does</b> return phone numbers \u2014 populating the \u260e column.');
+    }
+  }
+  return{
+    cage:reg.cageCode||'',
+    legalName:reg.legalBusinessName||'',
+    pocName:[named.firstName,named.lastName].filter(Boolean).join(' '),
+    phone:phone,
+    addr:core.physicalAddress?[core.physicalAddress.city,core.physicalAddress.stateOrProvinceCode].filter(Boolean).join(', '):''
+  };
+}
+
+/* ================= Phone enrichment via Scrape.do ================= */
+// Scrape.do is a server-side proxy: it fetches the target URL for us, so CORS/FOUO browser
+// limits don't apply. We pull the vendor phone from FPDS (public federal award records),
+// then fall back to a Google search scrape if FPDS has no phone on file.
+async function scrapeGet(targetUrl,token,render){
+  const u='https://api.scrape.do/?token='+encodeURIComponent(token)+'&url='+encodeURIComponent(targetUrl)+(render?'&render=true':'');
+  const r=await fetch(u);
+  if(!r.ok)throw new Error('Scrape.do HTTP '+r.status);
+  return await r.text();
+}
+function cleanPhone(s){
+  if(!s)return '';
+  const m=String(s).match(/(\+?1[\s.\-]?)?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/);
+  if(!m)return '';
+  const d=m[0].replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');
+  return d.length===10?'('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6):m[0].trim();
+}
+// FPDS public ATOM feed carries the vendor's phone + CAGE on the award record — no FOUO needed.
+async function fpdsVendor(piid,token){
+  if(!piid)return null;
+  const fpds='https://www.fpds.gov/ezsearch/FEEDS/ATOM?FEEDNAME=PUBLIC&templateName=1.5.3&q='+encodeURIComponent('PIID:"'+piid+'"');
+  const xml=await scrapeGet(fpds,token,false);
+  const ph=xml.match(/<[^>]*phoneNo>\s*([0-9()+\-.\sxX]{7,})\s*<\//i);
+  const cg=xml.match(/<[^>]*cageCode>\s*([A-Za-z0-9]{3,})\s*<\//i);
+  return { phone:cleanPhone(ph&&ph[1]), cage:(cg&&cg[1]||'').trim() };
+}
+async function googlePhone(name,city,state,token){
+  const g='https://www.google.com/search?q='+encodeURIComponent(name+' '+(city||'')+' '+(state||'')+' phone');
+  const html=await scrapeGet(g,token,false);
+  return cleanPhone(html);
+}
+// Best-effort email: no public structured source exists (FOUO in SAM, absent in FPDS), so we
+// scrape a web search and pull the first plausible business email. Often generic (info@), sometimes empty.
+function pickEmail(html){
+  const found=html.match(/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/g)||[];
+  const bad=/(example\.|sentry|schema\.org|w3\.org|googleapis|gstatic|mozilla|wixpress|cloudflare|jquery|bootstrap|\.png|\.jpg|\.gif|@2x|godaddy|domain|sentry\.io|wordpress|yoast)/i;
+  for(const e of found){ const x=e.toLowerCase(); if(!bad.test(x)&&x.length<60&&!x.endsWith('.gov')) return x; }
+  return '';
+}
+async function scrapeEmail(name,city,state,token){
+  const g='https://www.google.com/search?q='+encodeURIComponent('"'+name+'" '+(state||'')+' contact email');
+  const html=await scrapeGet(g,token,false);
+  return pickEmail(html);
+}
+let _scrapeDiagDone=false;
+
+/* ================= Scan flow ================= */
+function readScanParams(){
+  return {
+    from:$('fFrom').value||daysAgoISO(30),
+    to:$('fTo').value||todayISO(),
+    min:Number($('fMin').value)||0,
+    max:Number($('fMax').value)||50000,
+    maxAwards:Number($('fMaxAwards').value)||10,
+    scope:$('fScope').value,
+    maxScan:Math.min(200000,Math.max(500,Number($('fMaxScan').value)||2000)),
+    order:$('fOrder').value||'desc',
+    small:$('fSmall').checked,
+    productsOnly:$('fProductsOnly').checked,
+    naics:$('fNaics').value.split(',').map(s=>s.trim()).filter(Boolean),
+    scrapeToken:($('fScrapeToken')?$('fScrapeToken').value.trim():''),
+    forcePhone:$('fForcePhone').checked,
+    email:$('fEmail').checked
+  };
+}
+// One-click "scan the last 12 months" — ignores the filter boxes, uses the standard
+// small-business / products / $0–50k hunting profile, but still honors the tier checkboxes.
+function runYearScan(){
+  return runScan(false, {
+    from:daysAgoISO(365), to:todayISO(),
+    min:0, max:50000, naics:[], small:true, productsOnly:true,
+    scope:($('fScope').value||'dla'), order:'desc', maxScan:30000
+  });
+}
+async function runScan(isRetry, override){
+  clearNotice();
+  aborted=false;
+  $('runStatus').textContent='';
+  $('btnRun').disabled=true;$('btnYear').disabled=true;$('btnAbort').style.display='inline-block';$('btnCsv').disabled=true;
+  $('scanEmpty').style.display='none';
+  scanResults=[];renderResults();
+  _samDiagDone=false;
+  _scrapeDiagDone=false;
+  const p=Object.assign(readScanParams(), override||{});
+  if(override)showNotice('<b>1-year scan:</b> '+esc(p.from)+' \u2192 '+esc(p.to)+', ignoring the filter boxes (small-biz \u00b7 products \u00b7 $0\u2013'+p.max.toLocaleString()+'), but keeping your selected tiers.');
+  // Read pre-query target-tier focus
+  focusTiers=new Set([...document.querySelectorAll('#focusPills input:checked')].map(i=>i.value));
+  if(focusTiers.size===0)focusTiers=new Set(['first','emerging','growing','established']);
+  // Sync the post-scan pills to the focus (show "All" within focus by default)
+  tierFilter='all';
+  try{
+    try{ if(p.scrapeToken)await idbPut('kv',{k:'scrapeToken',v:p.scrapeToken}); }
+    catch(_){ /* saving creds is non-essential; keep scanning */ }
+    setProgress(1,'Resolving DLA agency name\u2026');
+    await resolveDlaAgency();
+    setProgress(2,'Pulling DLA awards\u2026');
+    const awards=await fetchAllAwards(p);
+    if(aborted)return finishScan();
+    if(!awards.length){
+      // Auto-shift once: if DLA's recent weeks aren't loaded, jump to the freshest loaded window and rescan.
+      if(!isRetry&&!override){
+        setProgress(20,'Window empty \u2014 locating DLA\u2019s freshest loaded data\u2026');
+        const {freshest}=await findFreshestWindow(p);
+        if(aborted)return finishScan();
+        if(freshest&&(freshest.from!==p.from||freshest.to!==p.to)){
+          showNotice('DLA\u2019s most recent weeks aren\u2019t in USAspending yet \u2014 auto-shifting to the freshest loaded window (<b>'+esc(freshest.from)+' \u2192 '+esc(freshest.to)+'</b>) and rescanning\u2026');
+          $('fFrom').value=freshest.from; $('fTo').value=freshest.to;
+          return runScan(true,{from:freshest.from,to:freshest.to,reqFrom:p.from,reqTo:p.to,shifted:true}); // single retry on the shifted window
+        }
+      }
+      // Already retried, or genuinely nothing to shift to — explain.
+      $('sAwards').textContent='0';
+      $('stats').style.display='grid';$('statsCaption').style.display='block';
+      await diagnoseZero(p);
+      return finishScan();
+    }
+    $('sAwards').textContent=awards.length;
+    // Freshness readout: chart awards by their period-of-performance month, but only WITHIN the
+    // requested window — delivery orders against old base contracts have ancient PoP starts that
+    // would otherwise smear the chart back years. Those are counted in a note, not charted.
+    const dts=awards.map(a=>a['Start Date']).filter(Boolean).sort();
+    if(dts.length){
+      const winFrom=p.from, winTo=p.to;
+      const inWin=dts.filter(d=>d>=winFrom&&d<=winTo);
+      const outCount=dts.length-inWin.length;
+      const byMonth={};
+      for(const d of inWin){const m=d.slice(0,7);byMonth[m]=(byMonth[m]||0)+1;}
+      const lo=inWin[0]||winFrom, hi=inWin[inWin.length-1]||winTo;
+      const capped=awards.length>=(p.maxScan||2000);
+      const shiftBanner=p.shifted?'<div style="background:var(--growing-bg);border:1px solid var(--growing);border-radius:8px;padding:10px 12px;margin:0 0 10px;font-size:12.5px;color:var(--growing)"><b>\u26a0 Window shifted.</b> You asked for <b>'+esc(p.reqFrom)+' \u2192 '+esc(p.reqTo)+'</b>, but USAspending hasn\u2019t loaded those weeks yet (DLA data runs ~3 months behind). So this scan ran the freshest <i>loaded</i> window instead: <b>'+esc(p.from)+' \u2192 '+esc(p.to)+'</b>. That\u2019s why you\u2019re seeing these months and not the ones you typed.</div>':'';
+      $('freshness').innerHTML=shiftBanner+'<b>Loaded data span:</b> '+esc(lo)+' \u2192 '+esc(hi)+' &nbsp;\u00b7&nbsp; '+awards.length.toLocaleString()+' awards in '+(p.shifted?'the shifted':'your')+' window'+
+        monthBarsHTML(byMonth)+
+        '<div style="font-size:11px;color:var(--muted)">Bars = awards by performance-start month, within your '+esc(winFrom)+' \u2192 '+esc(winTo)+' window. Grey near-empty bars = USAspending\u2019s ingest lag (recent weeks not posted yet), not a filter bug.</div>'+
+        (outCount?'<div style="font-size:11px;color:var(--muted);margin-top:4px">'+outCount.toLocaleString()+' awards have a performance-start date <b>outside</b> the window (older delivery orders against long-running base contracts) \u2014 they\u2019re in your data but not charted here.</div>':'')+
+        (capped?'<div style="font-size:11px;color:var(--muted);margin-top:4px">You hit your <b>scan cap ('+(p.maxScan||2000).toLocaleString()+')</b>, newest-first. Raise it or narrow the window/$ band for deeper history.</div>':'');
+      $('freshness').classList.add('show');
+    }
+    // Group by UEI
+    const byUei=new Map();
+    for(const a of awards){
+      const uei=a['Recipient UEI']||('NOUEI-'+(a['Recipient Name']||'?'));
+      if(!byUei.has(uei)){
+        const loc=a['Recipient Location']||{};
+        byUei.set(uei,{
+          uei, name:a['Recipient Name']||'(unknown)',
+          recipientId:a.recipient_id||'',
+          city:loc.city_name||'', state:loc.state_code||'',
+          awards:[], totalContracts:null, tier:null, isNew:false, cage:'', pocName:''
+        });
+      }
+      byUei.get(uei).awards.push({
+        id:a['Award ID']||'', gid:a.generated_internal_id||'',
+        amount:a['Award Amount']||0, date:a['Start Date']||'',
+        sub:a['Awarding Sub Agency']||'', desc:a['Description']||'',
+        naics:(a['NAICS']&&(a['NAICS'].code||a['NAICS']))||'', psc:(a['PSC']&&(a['PSC'].code||a['PSC']))||''
+      });
+    }
+    const companies=[...byUei.values()];
+    $('sCompanies').textContent=companies.length;
+    $('stats').style.display='grid';$('statsCaption').style.display='block';
+
+    // NEW badge: not in recipients store from a prior run
+    for(const c of companies){
+      const prior=await idbGet('recipients',c.uei);
+      c.isNew=!prior;
+      if(prior){c.status=prior.status;c.notes=prior.notes;c.cage=prior.cage||'';c.pocName=prior.pocName||'';c.phone=prior.phone||'';c.email=prior.email||'';}
+    }
+    scanResults=companies;
+    renderResults();
+
+    // Phase 2: award-history counts (cached 7 days, per-scope), throttled pool with retry/backoff
+    const WEEK=7*24*3600*1000;
+    await runPool(companies, async(c)=>{
+      const cached=await idbGet('recipients',c.uei);
+      const cacheOk=cached&&cached.totalContracts!=null&&cached.countCheckedAt&&cached.countScope===p.scope&&(Date.now()-cached.countCheckedAt)<WEEK;
+      if(cacheOk){
+        c.totalContracts=cached.totalContracts;
+      }else{
+        c.totalContracts=await fetchContractCount(c.uei,p.scope);
+      }
+      c.tier=c.totalContracts==null?null:classify(c.totalContracts,p.maxAwards);
+    }, {concurrency:1, attempts:1, pacing:200, onProgress:(d,t)=>{ setProgress(30+Math.round(45*d/t),'Checking '+(p.scope==='dla'?'DLA':'federal')+' award history \u2014 '+d+' / '+t); if(d%8===0)renderResults(); }});
+    if(aborted)return finishScan();
+    renderResults();
+
+    // Only enrich/keep companies in the chosen focus tiers
+    const inFocus=companies.filter(c=>c.tier&&focusTiers.has(c.tier));
+
+    // Phase 3: socioeconomic enrichment (USAspending recipient profile) for in-focus companies
+    await runPool(inFocus, async(c)=>{
+      const cached=await idbGet('recipients',c.uei);
+      if(cached&&cached.seTypes&&cached.seCheckedAt&&(Date.now()-cached.seCheckedAt)<30*WEEK){
+        c.seTypes=cached.seTypes;
+      }else{
+        try{ const d=await fetchRecipientDetail(c.recipientId); c.seTypes=d.types; }catch(e){ c.seTypes=c.seTypes||[]; }
+      }
+      c.seBadges=badgesFromTypes(c.seTypes);
+      c.talk=buildTalkingPoint(c);
+    }, {concurrency:2, attempts:1, pacing:140, onProgress:(d,t)=>{ setProgress(75+Math.round(12*d/Math.max(1,t)),'Socioeconomic + talking points \u2014 '+d+' / '+t); if(d%5===0)renderResults(); }});
+    if(aborted)return finishScan();
+    renderResults();
+
+    // Phase 5: contact enrichment via Scrape.do (ADMIN ONLY \u2014 token hidden unless ?admin=1) — FPDS vendor phone (+CAGE), optional best-effort email.
+    // Cached 7 days per UEI so RUN/RERUN don't re-spend credits — unless "Re-check phones" is on.
+    if(p.scrapeToken&&!aborted){
+      const WEEK2=7*24*3600*1000;
+      const targets=inFocus.filter(c=>!c.phone || p.email);
+      let scrapeFailed=false;
+      for(let i=0;i<targets.length&&!aborted&&!scrapeFailed;i++){
+        const c=targets[i];
+        const cached=await idbGet('recipients',c.uei);
+        const phoneFresh=cached&&cached.phoneCheckedAt&&(Date.now()-cached.phoneCheckedAt)<WEEK2;
+        const emailFresh=cached&&cached.emailCheckedAt&&(Date.now()-cached.emailCheckedAt)<WEEK2;
+        const needPhone=!c.phone && (p.forcePhone || !phoneFresh);
+        const needEmail=p.email && (p.forcePhone || !emailFresh);
+        if(!needPhone && !needEmail){ // use cache, skip the network
+          if(cached&&cached.phone&&!c.phone)c.phone=cached.phone;
+          if(cached&&cached.email)c.email=cached.email;
+          continue;
+        }
+        setProgress(92+Math.round(7*i/Math.max(1,targets.length)),'Contact lookup \u2014 '+(i+1)+' / '+targets.length);
+        try{
+          if(needPhone){
+            const v=await fpdsVendor((c.awards[0]||{}).id, p.scrapeToken);
+            let ph=v&&v.phone;
+            if(v&&v.cage&&!c.cage)c.cage=v.cage; // bonus: CAGE from FPDS, no SAM needed
+            if(!ph)ph=await googlePhone(c.name,c.city,c.state,p.scrapeToken); // fallback
+            if(!ph&&cached&&cached.phone)ph=cached.phone; // don't lose a previously-found number
+            if(ph){c.phone=ph;c.talk=buildTalkingPoint(c);}
+            c.phoneCheckedAt=Date.now();
+            if(!_scrapeDiagDone){
+              _scrapeDiagDone=true;
+              console.log('[BidWay][Phone] first lookup for',c.name,'\u2192 phone',ph||'(none)','| CAGE',v&&v.cage||'(none)');
+              showNotice(ph?'Phone lookup working \u2014 vendor phone (and CAGE) from FPDS via Scrape.do.':'Phone lookup ran but FPDS/Google had no number for the first target. The \u260e Find phone link remains as backup.');
+            }
+          } else if(cached&&cached.phone&&!c.phone){ c.phone=cached.phone; }
+          if(needEmail){
+            let em='';
+            try{ em=await scrapeEmail(c.name,c.city,c.state,p.scrapeToken); }catch(_){}
+            if(!em&&cached&&cached.email)em=cached.email;
+            if(em)c.email=em;
+            c.emailCheckedAt=Date.now();
+          } else if(cached&&cached.email){ c.email=cached.email; }
+        }catch(err){
+          scrapeFailed=true;
+          showNotice('Contact lookup unavailable: '+esc(err.message)+'. Check your Scrape.do token / credits. The Find phone / email links still work per row.');
+        }
+        await sleep(250);
+        renderResults();
+      }
+    }
+
+
+    // Persist to pipeline + log run (only in-focus companies saved to pipeline)
+    const now=Date.now();
+    let nFirst=0,nEm=0,nGr=0;
+    for(const c of companies){
+      if(c.tier==='first')nFirst++;else if(c.tier==='emerging')nEm++;else if(c.tier==='growing')nGr++;
+      if(!(c.tier&&focusTiers.has(c.tier)))continue; // pipeline holds only focus tiers
+      const prior=await idbGet('recipients',c.uei);
+      await idbPut('recipients',{
+        uei:c.uei,name:c.name,recipientId:c.recipientId,city:c.city,state:c.state,
+        cage:c.cage||(prior&&prior.cage)||'',pocName:c.pocName||(prior&&prior.pocName)||'',
+        phone:c.phone||(prior&&prior.phone)||'',
+        phoneCheckedAt:c.phoneCheckedAt||(prior&&prior.phoneCheckedAt)||null,
+        email:c.email||(prior&&prior.email)||'',
+        emailCheckedAt:c.emailCheckedAt||(prior&&prior.emailCheckedAt)||null,
+        totalContracts:c.totalContracts,countCheckedAt:c.totalContracts!=null?now:(prior&&prior.countCheckedAt)||null,countScope:p.scope,
+        seTypes:c.seTypes||(prior&&prior.seTypes)||[],seCheckedAt:c.seTypes?now:(prior&&prior.seCheckedAt)||null,
+        tier:c.tier||(prior&&prior.tier)||null,
+        lastAwardAmt:c.awards[0]?c.awards[0].amount:null,
+        lastAwardDate:c.awards[0]?c.awards[0].date:null,
+        lastAwardDesc:c.awards[0]?c.awards[0].desc:null,
+        lastAwardId:c.awards[0]?c.awards[0].id:null,
+        windowAwards:(c.awards&&c.awards.length)||(prior&&prior.windowAwards)||null,
+        winFirst:(c.awards&&c.awards.length)?c.awards.map(a=>a.date).filter(Boolean).sort()[0]:(prior&&prior.winFirst)||null,
+        winLast:(c.awards&&c.awards.length)?c.awards.map(a=>a.date).filter(Boolean).sort().slice(-1)[0]:(prior&&prior.winLast)||null,
+        talk:c.talk||null,
+        scanDate:todayISO(),
+        fsc:fscOf(c),
+        firstSeenAt:(prior&&prior.firstSeenAt)||now,
+        lastSeenAt:now,
+        status:(prior&&prior.status)||'New',
+        notes:(prior&&prior.notes)||''
+      });
+    }
+    $('sFirst').textContent=nFirst;$('sEmerging').textContent=nEm;$('sGrowing').textContent=nGr;
+    await idbPut('runs',{at:now,from:p.from,to:p.to,awards:awards.length,companies:companies.length,first:nFirst,emerging:nEm,growing:nGr});
+    await refreshPipeline();await refreshLog();
+    setProgress(100,'Done \u2014 '+companies.length+' companies, '+nFirst+' first-award targets');
+    $('runStatus').textContent='Done \u2014 '+companies.length+' companies, '+nFirst+' first-award target'+(nFirst===1?'':'s');
+    $('btnCsv').disabled=!scanResults.length;$('btnXlsx').disabled=!scanResults.length;
+  }catch(e){
+    const corsy=/failed to fetch|networkerror|load failed/i.test(e.message||'');
+    const storagey=/indexeddb|transaction|object ?store|database|blocked|unavailable/i.test(e.message||'');
+    if(storagey){
+      showNotice('Scan stopped \u2014 <b>local storage (IndexedDB) wouldn\u2019t open</b>. On <code>file://</code> Chrome treats the page as a unique origin and sometimes blocks storage. Fixes: close and reopen the file (a fresh load usually opens it), or open it once via a tiny local server so it has a normal origin. Your data isn\u2019t lost \u2014 it just couldn\u2019t write this run.');
+    }else if(corsy){
+      showNotice('Scan stopped \u2014 <b>USAspending is rate-limiting the pull</b>. On big runs its edge returns header-less error responses, which Chrome mislabels as a CORS error. The app auto-backs-off, but if it still gives out: wait a minute, then either rerun (the cache keeps what already completed) or run a <b>smaller window</b> (e.g. a quarter at a time) so there are fewer calls per run.');
+    }else{
+      showNotice('Scan failed: '+esc(e.message)+'. USAspending occasionally rate-limits \u2014 wait a minute and retry.');
+    }
+    setProgress(0,'Failed');
+    $('runStatus').textContent='Scan failed \u2014 see message above.';
+  }finally{ finishScan(); }
+}
+function finishScan(){$('btnRun').disabled=false;$('btnYear').disabled=false;$('btnAbort').style.display='none';if(scanResults.length){$('btnCsv').disabled=false;$('btnXlsx').disabled=false;}renderCoverage();}
+
+/* ================= Render: scan results ================= */
+function tierPill(c){
+  if(c.tier==null)return'<span class="tier-pill checking">checking\u2026</span>';
+  const t=TIERS[c.tier];
+  const n=c.totalContracts!=null?' \u00b7 '+c.totalContracts:'';
+  return'<span class="tier-pill '+t.cls+'">'+t.label+n+'</span>';
+}
+const FSC_NAMES={'5305':'Screws','5306':'Bolts','5307':'Studs','5310':'Nuts & washers','5315':'Pins','5320':'Rivets','5325':'Fastening devices','5330':'Seals & gaskets','5331':'O-rings','5335':'Metal screening','5340':'Hardware','5342':'Fittings','5350':'Abrasives','5355':'Knobs','5360':'Springs','5365':'Bushings & rings'};
+// FSC = the 4-digit Federal Supply Class. For product awards the USAspending PSC IS the FSC;
+// fall back to the leading 4 digits of the award description (the NSN's FSC) if PSC is missing.
+function monthBarsHTML(byMonth){
+  const keys=Object.keys(byMonth).sort();
+  if(!keys.length)return '';
+  const max=Math.max.apply(null,keys.map(k=>byMonth[k]))||1;
+  const MON=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const bars=keys.map(k=>{
+    const v=byMonth[k];
+    const h=Math.max(3,Math.round(v/max*92));
+    const faint=v<max*0.1;
+    const parts=k.split('-'); const lbl=(MON[+parts[1]]||parts[1])+'\u2019'+parts[0].slice(2);
+    const cnt=v>=1000?(Math.round(v/100)/10)+'k':String(v);
+    return '<div class="mb-col" title="'+esc(k)+': '+v.toLocaleString()+' awards">'+
+      '<div class="mb-count">'+cnt+'</div>'+
+      '<div class="mb-bar'+(faint?' faint':'')+'" style="height:'+h+'px"></div>'+
+      '<div class="mb-label">'+lbl+'</div></div>';
+  }).join('');
+  return '<div class="monthbars">'+bars+'</div>';
+}
+function fscOf(c){
+  const a=c.awards&&c.awards[0]; if(!a)return '';
+  const psc=(a.psc||'').trim();
+  if(/^[0-9A-Za-z]{4}$/.test(psc))return psc.toUpperCase();
+  const m=(a.desc||'').match(/\b(\d{4})\d*/); return m?m[1]:'';
+}
+function hasSetAside(c,code){
+  if(!code)return true;
+  const labels=(c.seBadges||[]).map(b=>(b.label||'').toUpperCase().replace(/[^A-Z0-9]/g,''));
+  const want=code.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(want==='SMALL')return labels.some(l=>l.startsWith('SMALL')||l==='EMERGINGSB');
+  if(want==='8A')return labels.includes('8A');
+  return labels.includes(want);
+}
+function renderResults(){
+  const host=$('results');
+  const saVal=$('fltSdvosb').checked?'SDVOSB':($('fltSetaside').value||'');
+  const fscVals=($('fltFsc').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const full=scanResults
+    .filter(c=>!c.tier||focusTiers.has(c.tier))
+    .filter(c=>tierFilter==='all'||c.tier===tierFilter)
+    .filter(c=>hasSetAside(c,saVal))
+    .filter(c=>{ if(!fscVals.length)return true; const f=fscOf(c); return f&&fscVals.some(code=>f.startsWith(code)); })
+    .sort((a,b)=>{
+      const ord={first:0,emerging:1,growing:2,established:3};
+      const ta=a.tier?ord[a.tier]:1.5, tb=b.tier?ord[b.tier]:1.5;
+      return ta-tb||(b.awards.reduce((s,x)=>s+x.amount,0)-a.awards.reduce((s,x)=>s+x.amount,0));
+    });
+  const hasAny=scanResults.length>0;
+  $('resultsCard').style.display=hasAny?'block':'none';
+  $('scanEmpty').style.display=hasAny?'none':'block';
+  if(!hasAny){host.innerHTML='';$('pager').innerHTML='';return;}
+  const firstCount=scanResults.filter(c=>c.tier==='first').length;
+  $('resultsSub').textContent=full.length+' shown · '+firstCount+' first-award target'+(firstCount===1?'':'s');
+
+  const totalPages=Math.max(1,Math.ceil(full.length/rowsPerPage));
+  if(page>totalPages)page=totalPages;
+  const pageRows=full.slice((page-1)*rowsPerPage, page*rowsPerPage);
+
+  host.innerHTML=pageRows.map(c=>{
+    const tot=c.awards.reduce((s,a)=>s+(a.amount||0),0);
+    const q=encodeURIComponent(c.name);
+    const a0=c.awards[0]||{};
+    const ids='UEI '+esc(c.uei)+(c.cage?' · CAGE '+esc(c.cage):'');
+    const se=(c.seBadges&&c.seBadges.length)?'<div>'+c.seBadges.map(b=>'<span class="sebadge '+b.cls+'">'+b.label+'</span>').join('')+'</div>':'';
+    const latest=(a0.gid?'<a href="https://www.usaspending.gov/award/'+esc(a0.gid)+'" target="_blank" rel="noopener" class="aw-id">'+esc(a0.id)+'</a>':'<span class="aw-id">'+esc(a0.id||'\u2014')+'</span>')+
+      (a0.desc?'<div class="aw-desc" title="'+esc(a0.desc)+'">'+esc(a0.desc)+'</div>':'')+
+      '<div class="aw-date">'+esc(a0.date||'')+(c.awards.some(x=>x.sub)?' · DLA':'')+'</div>';
+    const phoneLine=c.phone
+      ? '<span class="phone-num">'+esc(c.phone)+'</span>'
+      : '<a class="phone-find" target="_blank" rel="noopener" href="https://www.google.com/search?q='+q+'+'+encodeURIComponent((c.city||'')+' '+(c.state||'')+' phone number')+'">\u260e Find phone</a>';
+    const emailLine=c.email
+      ? '<a class="email-link" href="mailto:'+esc(c.email)+'">'+esc(c.email)+'</a>'
+      : '<a class="phone-find" target="_blank" rel="noopener" href="https://www.google.com/search?q='+q+'+'+encodeURIComponent((c.state||'')+' contact email')+'">\u2709 Find email</a>';
+    const phoneCell=phoneLine+'<div class="contact-email">'+emailLine+'</div>';
+    const talk=c.talk?'<div class="talk"><div class="clamp">'+c.talk+'</div><button class="talk-more">Show more</button><br><button class="copybtn" data-uei="'+esc(c.uei)+'">\u29c9 Copy</button></div>':'<span style="color:var(--faint)">\u2014</span>';
+    const fsc=fscOf(c); const fscName=FSC_NAMES[fsc]||'';
+    return '<tr data-uei="'+esc(c.uei)+'">'+
+      '<td><div class="co-name">'+esc(c.name)+'</div><div class="co-loc">'+esc([c.city,c.state].filter(Boolean).join(', '))+'</div><div class="co-ids">'+ids+'</div>'+se+'</td>'+
+      '<td class="cell-status">'+tierPill(c)+'<div class="status-sub">'+(c.totalContracts!=null?c.totalContracts+' award'+(c.totalContracts===1?'':'s'):'')+'</div>'+(c.isNew?'<div><span class="new-flag">NEW</span></div>':'')+'</td>'+
+      '<td>'+latest+'</td>'+
+      '<td>'+(fsc?('<span class="fsc-tag">'+esc(fsc)+'</span>'+(fscName?'<div class="fsc-name">'+esc(fscName)+'</div>':'')):'<span style="color:var(--faint)">\u2014</span>')+'</td>'+
+      '<td><span class="amt">'+fmt$(tot)+'</span></td>'+
+      '<td class="cell-c"><div class="n">'+c.awards.length+'</div><div class="l">in window</div></td>'+
+      '<td>'+(c.pocName?esc(c.pocName):'<span style="color:var(--faint)">\u2014</span>')+'</td>'+
+      '<td>'+phoneCell+'</td>'+
+      '<td>'+talk+'</td>'+
+      '<td><div class="linkchips">'+
+        '<div class="linkrow">'+(c.recipientId?'<a class="lnk" target="_blank" rel="noopener" href="https://www.usaspending.gov/recipient/'+esc(c.recipientId)+'/latest">USAspending</a>':'')+
+        '<a class="lnk" target="_blank" rel="noopener" href="https://sam.gov/search/?q='+q+'">SAM.gov</a></div>'+
+        '<div class="linkrow"><a class="lnk" target="_blank" rel="noopener" href="https://www.linkedin.com/search/results/companies/?keywords='+q+'">LinkedIn</a>'+
+        '<a class="lnk" target="_blank" rel="noopener" href="https://www.google.com/search?q='+q+'+'+encodeURIComponent((c.state||'')+' contact')+'">Web</a></div>'+
+      '</div></td>'+
+      '<td class="crmcell"><select class="statusSel">'+['New','Researched','Contacted','Responded','Pass'].map(s=>'<option'+((c.status||'New')===s?' selected':'')+'>'+s+'</option>').join('')+'</select>'+
+      '<input class="noteInp" placeholder="notes\u2026" value="'+esc(c.notes||'')+'"></td>'+
+      '</tr>';
+  }).join('');
+
+  host.querySelectorAll('tr').forEach(row=>{
+    const uei=row.dataset.uei;
+    row.querySelector('.statusSel').addEventListener('change',e=>saveCrm(uei,{status:e.target.value}));
+    row.querySelector('.noteInp').addEventListener('change',e=>saveCrm(uei,{notes:e.target.value}));
+    const more=row.querySelector('.talk-more');
+    if(more)more.addEventListener('click',()=>{const t=row.querySelector('.talk');t.classList.toggle('open');more.textContent=t.classList.contains('open')?'Show less':'Show more';});
+    const cb=row.querySelector('.copybtn');
+    if(cb)cb.addEventListener('click',()=>{
+      const c=scanResults.find(x=>x.uei===uei);
+      if(c&&c.talk){
+        const plain=c.talk.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+        navigator.clipboard&&navigator.clipboard.writeText(plain);
+        cb.textContent='\u2713 Copied'; setTimeout(()=>cb.textContent='\u29c9 Copy',1500);
+      }
+    });
+  });
+  renderPager(full.length,totalPages);
+}
+function renderPager(total,totalPages){
+  const host=$('pager');
+  if(total<=rowsPerPage&&rowsPerPage>=total){
+    host.innerHTML='<div class="rpp">Showing '+total+' row'+(total===1?'':'s')+'</div>'+rppSelect();
+    bindRpp();return;
+  }
+  const btn=(label,p,opts)=>'<button '+(opts&&opts.disabled?'disabled':'')+(opts&&opts.active?' class="active"':'')+' data-p="'+p+'">'+label+'</button>';
+  let nums='';
+  const windowPages=[];
+  for(let i=1;i<=totalPages;i++){
+    if(i===1||i===totalPages||(i>=page-1&&i<=page+1))windowPages.push(i);
+    else if(windowPages[windowPages.length-1]!=='…')windowPages.push('…');
+  }
+  nums=windowPages.map(p=>p==='…'?'<span class="ellipsis">…</span>':btn(p,p,{active:p===page})).join('');
+  host.innerHTML='<div class="pages">'+btn('‹ Prev',page-1,{disabled:page<=1})+nums+btn('Next ›',page+1,{disabled:page>=totalPages})+'</div>'+rppSelect();
+  host.querySelectorAll('.pages button[data-p]').forEach(b=>b.addEventListener('click',()=>{const np=Number(b.dataset.p);if(np>=1&&np<=totalPages){page=np;renderResults();window.scrollTo({top:$('resultsCard').offsetTop-70,behavior:'smooth'});}}));
+  bindRpp();
+}
+function rppSelect(){return '<div class="rpp">Rows per page <select id="rppSel">'+[10,25,50,100].map(n=>'<option'+(n===rowsPerPage?' selected':'')+'>'+n+'</option>').join('')+'</select></div>';}
+function bindRpp(){const s=$('rppSel');if(s)s.addEventListener('change',e=>{rowsPerPage=Number(e.target.value);page=1;renderResults();});}
+async function saveCrm(uei,patch){
+  const c=scanResults.find(x=>x.uei===uei);
+  if(c)Object.assign(c,patch);
+  const rec=await idbGet('recipients',uei);
+  if(rec){Object.assign(rec,patch);await idbPut('recipients',rec);}
+  refreshPipeline();
+}
+
+/* ================= Pipeline ================= */
+let _pipeRecords=[];
+// Lead quality score 0-100 from real signals: recency of last win, how clustered their wins are
+// (cadence/activity), and whether we can actually reach them. Heuristic, weights are tunable below.
+function leadScore(r){
+  let rec=0.45;
+  if(r.lastAwardDate){
+    const days=(Date.now()-new Date(r.lastAwardDate+'T00:00:00Z').getTime())/86400000;
+    rec = days<=0?1 : Math.max(0, 1 - days/270); // full now, ~0 by ~9 months
+  }
+  let cad;
+  if(r.windowAwards){
+    let months=1;
+    if(r.winFirst&&r.winLast){ months=Math.max(0.5,(new Date(r.winLast)-new Date(r.winFirst))/86400000/30); }
+    cad=Math.min(1,(r.windowAwards/months)/3); // 3+ wins/mo = max activity
+  } else {
+    cad=({first:0.25,emerging:0.5,growing:0.8})[r.tier]||0.3; // proxy until re-scanned with new fields
+  }
+  const con = r.phone?1:(r.email?0.5:0);
+  return Math.round(100*(0.40*rec + 0.35*cad + 0.25*con));
+}
+function scoreBucket(s){ return s>=66?'hot':s>=33?'warm':'cool'; }
+function renderValueModel(){
+  const el=$('valueOut'); if(!el)return;
+  const arpu=Math.max(0,Number($('vmArpu').value)||0);
+  const months=Math.max(1,Number($('vmMonths').value)||1);
+  const convPct=Math.max(0,Number($('vmConv').value)||0);
+  const conv=convPct/100;
+  const bounty=Math.max(0,Number($('vmBounty').value)||0);
+  const ltv=arpu*months;
+  // Only tiered, non-established companies are real leads — and only they get enriched with phones.
+  const leads=_pipeRecords.filter(r=>r.tier==='first'||r.tier==='emerging'||r.tier==='growing');
+  const untiered=_pipeRecords.filter(r=>!r.tier).length;
+  const contactable=leads.filter(r=>r.phone).length;
+  let expConverts=0;
+  leads.forEach(r=>{ expConverts += conv*(0.5 + leadScore(r)/100); }); // quality-weighted, centred at score~50
+  const pipeVal=expConverts*ltv;
+  const bountyTotal=expConverts*bounty;
+  const perLead=leads.length?pipeVal/leads.length:0;
+  const N=n=>n.toLocaleString();
+  el.innerHTML='<div class="vm-stats">'+
+      '<div class="vm-stat vm-hero"><div class="vm-num">'+fmt$(pipeVal)+'</div><div class="vm-lbl">Expected customer value</div></div>'+
+      '<div class="vm-stat"><div class="vm-num">'+N(leads.length)+'</div><div class="vm-lbl">Real leads <span class="vm-sub">('+N(contactable)+' by phone)</span></div></div>'+
+      '<div class="vm-stat"><div class="vm-num">~'+Math.round(expConverts)+'</div><div class="vm-lbl">Est. customers</div></div>'+
+      '<div class="vm-stat"><div class="vm-num">'+fmt$(perLead)+'</div><div class="vm-lbl">Value per lead</div></div>'+
+      '<div class="vm-stat"><div class="vm-num">'+fmt$(bountyTotal)+'</div><div class="vm-lbl">Your bounty payout</div></div>'+
+    '</div>'+
+    '<div class="vm-note">Counts only tiered, non-established leads, <b>quality-weighted</b> by recency, win-cadence &amp; contactability. Each customer \u2248 '+fmt$(ltv)+' over '+months+' mo at '+convPct+'% base conversion.'+
+    (untiered?' \u00b7 <b>'+N(untiered)+'</b> companies not yet tiered (count calls throttled) \u2014 re-run to classify them.':'')+'</div>';
+  idbPut('kv',{k:'valueModel',v:{arpu,months,convPct,bounty}});
+  renderLeadBreakout(leads);
+  renderFinanceModel(leads);
+}
+function renderLeadBreakout(leads){
+  const el=$('leadBreakout'); if(!el)return;
+  if(!leads.length){ el.innerHTML=''; return; }
+  const tiers=[['first','First award','#16a34a'],['emerging','Emerging','#2563eb'],['growing','Growing','#9333ea']];
+  const tierMax=Math.max.apply(null,tiers.map(t=>leads.filter(r=>r.tier===t[0]).length).concat([1]));
+  const tierBars=tiers.map(t=>{
+    const list=leads.filter(r=>r.tier===t[0]); const n=list.length; const ph=list.filter(r=>r.phone).length;
+    const h=Math.max(4,Math.round(n/tierMax*92)); const phh=n?Math.round(ph/n*h):0;
+    return '<div class="lb-col" title="'+t[1]+': '+n+' ('+ph+' with phone)"><div class="lb-count">'+n+'</div>'+
+      '<div class="lb-bar" style="height:'+h+'px;background:'+t[2]+'22"><div class="lb-fill" style="height:'+phh+'px;background:'+t[2]+'"></div></div>'+
+      '<div class="lb-label">'+t[1]+'</div></div>';
+  }).join('');
+  const buckets={hot:0,warm:0,cool:0};
+  leads.forEach(r=>{ buckets[scoreBucket(leadScore(r))]++; });
+  const qMax=Math.max(buckets.hot,buckets.warm,buckets.cool,1);
+  const q=[['hot','Hot (66+)','#dc2626'],['warm','Warm (33\u201365)','#d97706'],['cool','Cool (<33)','#0891b2']];
+  const qBars=q.map(t=>{
+    const n=buckets[t[0]]; const h=Math.max(4,Math.round(n/qMax*92)); const pct=Math.round(n/leads.length*100);
+    return '<div class="lb-col" title="'+t[1]+': '+n+' ('+pct+'%)"><div class="lb-count">'+n+'<span style="font-weight:500;color:var(--muted)"> \u00b7'+pct+'%</span></div>'+
+      '<div class="lb-bar" style="height:'+h+'px;background:'+t[2]+'"></div>'+
+      '<div class="lb-label">'+t[1]+'</div></div>';
+  }).join('');
+  el.innerHTML='<div class="lb-wrap"><div class="lb-title">Real leads by tier <span class="lb-sub">(solid fill = reachable by phone)</span></div><div class="lb-chart">'+tierBars+'</div></div>'+
+    '<div class="lb-wrap"><div class="lb-title">Lead quality mix <span class="lb-sub">(40% recency + 35% win-cadence + 25% contactable)</span></div><div class="lb-chart">'+qBars+'</div></div>';
+}
+// ===== Net-30 financing model =====
+// A PROSPECTING signal (not a credit decision): scores how attractive a contractor is to offer
+// working-capital / Net-30 terms to, from their contract velocity, recency, ticket size & traction.
+function winsPerMonth(r){
+  if(!r.windowAwards)return 0;
+  let m=1; if(r.winFirst&&r.winLast){ m=Math.max(0.5,(new Date(r.winLast)-new Date(r.winFirst))/86400000/30); }
+  return r.windowAwards/m;
+}
+function daysSinceLast(r){ return r.lastAwardDate? (Date.now()-new Date(r.lastAwardDate+'T00:00:00Z').getTime())/86400000 : 9999; }
+function financeScore(r){
+  const vel=Math.min(1, winsPerMonth(r)/2);            // 2+ wins/mo = strong deal flow
+  const rec=Math.max(0, 1 - daysSinceLast(r)/180);      // active in last ~6 mo
+  const size=Math.min(1, (r.lastAwardAmt||0)/25000);    // bigger ticket = more financeable
+  const tract=({first:0.45,emerging:0.8,growing:1})[r.tier]||0.4;
+  return Math.round(100*(0.35*vel + 0.25*rec + 0.20*size + 0.20*tract));
+}
+function financeSegment(r){
+  const tot=r.totalContracts||0, wa=r.windowAwards||0, perMo=winsPerMonth(r), days=daysSinceLast(r);
+  if(days>180 || (tot<=1 && wa<=1)) return 'dormant';        // stale or true one-off
+  if(tot<=5 && (wa>=2 || perMo>=1.2)) return 'rising';        // new but already working a lane
+  if(wa>=3 || perMo>=1.5) return 'steady';                    // consistent deal flow
+  return 'warming';                                           // light but live
+}
+function renderFinanceModel(leads){
+  const el=$('financeOut'), bk=$('financeBreakout'); if(!el)return;
+  if(!leads.length){ el.innerHTML=''; if(bk)bk.innerHTML=''; return; }
+  const segs={rising:[],steady:[],warming:[],dormant:[]};
+  leads.forEach(r=>segs[financeSegment(r)].push(r));
+  const financeable=segs.rising.length+segs.steady.length+segs.warming.length;
+  const avg=leads.length?Math.round(leads.reduce((s,r)=>s+financeScore(r),0)/leads.length):0;
+  const N=n=>n.toLocaleString();
+  el.innerHTML='<div class="vm-stats">'+
+      '<div class="vm-stat vm-hero"><div class="vm-num">'+N(financeable)+'</div><div class="vm-lbl">Financeable now</div></div>'+
+      '<div class="vm-stat"><div class="vm-num">'+N(segs.rising.length)+'</div><div class="vm-lbl">Rising lane <span class="vm-sub">(new, already winning)</span></div></div>'+
+      '<div class="vm-stat"><div class="vm-num">'+N(segs.steady.length)+'</div><div class="vm-lbl">Steady earners</div></div>'+
+      '<div class="vm-stat"><div class="vm-num">'+avg+'</div><div class="vm-lbl">Avg fit score</div></div>'+
+    '</div>'+
+    '<div class="vm-note"><b>Rising lane</b> = just got off the ground but already winning repeatedly \u2014 highest need for working capital, your prime offer. <b>Steady earners</b> = consistent deal flow, lowest risk. <b>Warming</b> = live but light. <b>Dormant/one-off</b> = stale or single award, skip for now. Score = 35% win-velocity + 25% recency + 20% ticket size + 20% traction.</div>';
+  if(bk){
+    const order=[['rising','Rising lane','#16a34a'],['steady','Steady earner','#2563eb'],['warming','Warming','#d97706'],['dormant','Dormant / one-off','#64748b']];
+    const max=Math.max.apply(null,order.map(o=>segs[o[0]].length).concat([1]));
+    const bars=order.map(o=>{
+      const n=segs[o[0]].length, h=Math.max(4,Math.round(n/max*92)), pct=Math.round(n/leads.length*100);
+      return '<div class="lb-col" title="'+o[1]+': '+n+' ('+pct+'%)"><div class="lb-count">'+n+'<span style="font-weight:500;color:var(--muted)"> \u00b7'+pct+'%</span></div>'+
+        '<div class="lb-bar" style="height:'+h+'px;background:'+o[2]+'"></div><div class="lb-label">'+o[1]+'</div></div>';
+    }).join('');
+    bk.innerHTML='<div class="lb-wrap" style="min-width:320px"><div class="lb-title">Financing segments <span class="lb-sub">(by contract velocity &amp; momentum)</span></div><div class="lb-chart">'+bars+'</div></div>';
+  }
+  _financeLeads=leads; renderFinancePricing(leads);
+}
+let _financeLeads=[];
+function renderFinancePricing(leads){
+  const el=$('financePricing'); if(!el)return;
+  const rate=Math.max(0,Number($('fpRate').value)||0)/100;
+  const share=Math.max(0,Math.min(100,Number($('fpShare').value)||0))/100;
+  const sample=Math.max(0,Number($('fpSample').value)||0);
+  const MIN=10000;
+  const tiers=[0.5,0.3,0.2];
+  const rows=tiers.map(t=>{ const adv=sample*t, fee=adv*rate; return {adv,fee,prem:fee*share}; });
+  const elig=sample>MIN;
+  const qual=(leads||[]).filter(r=>(r.lastAwardAmt||0)>MIN);
+  const vol=qual.reduce((s,r)=>s+(r.lastAwardAmt||0),0);
+  const portfolioPrem=vol*0.5*rate*share;
+  el.innerHTML=
+    '<div class="vm-note" style="margin-bottom:10px">Finance only contracts over <b>'+fmt$(MIN)+'</b>. On a <b>'+fmt$(sample)+'</b> contract'+(elig?'':' <span style="color:var(--danger)">(below the '+fmt$(MIN)+' floor \u2014 not eligible)</span>')+', advance = share \u00d7 contract, contractor fee = factor rate \u00d7 advance (one 30-day cycle), your premium = your share of that fee.</div>'+
+    '<table class="fp-table"><thead><tr><th>On '+fmt$(sample)+'</th><th>50% term</th><th>30% term</th><th>20% term</th></tr></thead><tbody>'+
+      '<tr><td>Advanced to contractor</td>'+rows.map(r=>'<td>'+fmt$(r.adv)+'</td>').join('')+'</tr>'+
+      '<tr><td>Contractor fee (30 days)</td>'+rows.map(r=>'<td>'+fmt$(r.fee)+'</td>').join('')+'</tr>'+
+      '<tr class="fp-hl"><td>Your premium</td>'+rows.map(r=>'<td>'+fmt$(r.prem)+'</td>').join('')+'</tr>'+
+    '</tbody></table>'+
+    '<div class="vm-note" style="margin-top:10px"><b>'+qual.length.toLocaleString()+'</b> pipeline contracts qualify (last award over '+fmt$(MIN)+'), <b>'+fmt$(vol)+'</b> total value. If each took a 50% advance once, your premium pool \u2248 <b>'+fmt$(portfolioPrem)+'</b> per cycle.</div>';
+  idbPut('kv',{k:'financePricing',v:{rate:$('fpRate').value,share:$('fpShare').value,sample:$('fpSample').value}});
+}
+async function refreshPipeline(){
+  const all=(await idbGetAll('recipients')).sort((a,b)=>{
+    const da=a.lastAwardDate||'', db=b.lastAwardDate||'';
+    if(da!==db)return db.localeCompare(da); // most recent award date first
+    return (b.lastSeenAt||0)-(a.lastSeenAt||0);
+  });
+  $('pipeCount').textContent=all.length;
+  const tc={first:0,emerging:0,growing:0,established:0};
+  all.forEach(r=>{ if(r.tier&&tc[r.tier]!=null)tc[r.tier]++; });
+  const ph=all.filter(r=>r.phone).length;
+  $('pipeTotals').textContent=all.length+' companies · '+tc.first+' first · '+tc.emerging+' emerging · '+tc.growing+' growing · '+ph+' with phone';
+  _pipeRecords=all; renderValueModel();
+  $('pipeEmpty').style.display=all.length?'none':'block';
+  $('pipeBody').innerHTML=all.map(r=>{
+    const t=r.tier&&TIERS[r.tier];
+    const se=badgesFromTypes(r.seTypes).map(b=>'<span class="sebadge '+b.cls+'" style="font-size:9px">'+b.label+'</span>').join(' ');
+    return '<tr data-uei="'+esc(r.uei)+'">'+
+    '<td><b>'+esc(r.lastAwardDate||'\u2014')+'</b></td>'+
+    '<td class="cage">'+esc(r.scanDate||(r.lastSeenAt?new Date(r.lastSeenAt).toISOString().slice(0,10):'\u2014'))+'</td>'+
+    '<td><b>'+esc(r.name)+'</b></td>'+
+    '<td class="cage">'+esc(r.uei)+(r.cage?'<br>'+esc(r.cage):'')+'</td>'+
+    '<td>'+esc([r.city,r.state].filter(Boolean).join(', '))+'</td>'+
+    '<td>'+esc(r.pocName||'')+(r.phone?'<br><span class="cage">'+esc(r.phone)+'</span>':'')+'</td>'+
+    '<td>'+(se||'\u2014')+'</td>'+
+    '<td>'+(r.totalContracts==null?'\u2014':r.totalContracts)+'</td>'+
+    '<td>'+(t?'<span class="tier-pill '+t.cls+'">'+t.label+'</span>':'\u2014')+'</td>'+
+    '<td>'+(r.lastAwardAmt!=null?fmt$(r.lastAwardAmt):'\u2014')+'</td>'+
+    '<td><select class="statusSel" style="font:inherit;font-size:12px;padding:3px 6px;border:1.5px solid var(--border);border-radius:6px">'+
+      ['New','Researched','Contacted','Responded','Pass'].map(s=>'<option'+((r.status||'New')===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>'+
+    '<td><input class="noteInp" value="'+esc(r.notes||'')+'" style="font:inherit;font-size:12px;padding:3px 6px;border:1.5px solid var(--border);border-radius:6px;min-width:120px"></td>'+
+    '<td><button class="btn danger small delBtn" title="Remove">\u00d7</button></td>'+
+    '</tr>';
+  }).join('');
+  $('pipeBody').querySelectorAll('tr').forEach(tr=>{
+    const uei=tr.dataset.uei;
+    tr.querySelector('.statusSel').addEventListener('change',async e=>{const r=await idbGet('recipients',uei);r.status=e.target.value;await idbPut('recipients',r);});
+    tr.querySelector('.noteInp').addEventListener('change',async e=>{const r=await idbGet('recipients',uei);r.notes=e.target.value;await idbPut('recipients',r);});
+    tr.querySelector('.delBtn').addEventListener('click',async()=>{await idbDel('recipients',uei);refreshPipeline();});
+  });
+}
+
+/* ================= Log ================= */
+async function refreshLog(){
+  const runs=(await idbGetAll('runs')).sort((a,b)=>b.at-a.at);
+  $('logEmpty').style.display=runs.length?'none':'block';
+  $('logBody').innerHTML=runs.map(r=>'<tr><td>'+new Date(r.at).toLocaleString()+'</td><td>'+esc(r.from)+' \u2192 '+esc(r.to)+'</td><td>'+r.awards+'</td><td>'+r.companies+'</td><td>'+r.first+'</td><td>'+r.emerging+'</td><td>'+r.growing+'</td></tr>').join('');
+}
+// Persistent "what data do I have" metric so you know what window to run next time.
+async function renderCoverage(){
+  const el=$('coverage'); if(!el)return;
+  const all=await idbGetAll('recipients');
+  if(!all.length){ el.classList.remove('show'); return; }
+  const awDates=all.map(r=>r.lastAwardDate).filter(Boolean).sort();
+  const scanDates=all.map(r=>r.scanDate).filter(Boolean).sort();
+  const runs=(await idbGetAll('runs')).sort((a,b)=>b.at-a.at);
+  const lastRun=runs[0];
+  const loA=awDates[0]||'\u2014', hiA=awDates[awDates.length-1]||'\u2014';
+  const lastScan=scanDates[scanDates.length-1]||(lastRun?new Date(lastRun.at).toISOString().slice(0,10):'\u2014');
+  // Cumulative coverage: how many cached companies fall in each award month (most recent 24 months).
+  const cmByMonth={};
+  awDates.forEach(d=>{const m=d.slice(0,7); cmByMonth[m]=(cmByMonth[m]||0)+1;});
+  const keys=Object.keys(cmByMonth).sort();
+  const recent=keys.slice(-24);
+  const recentMap={}; recent.forEach(k=>recentMap[k]=cmByMonth[k]);
+  const olderCount=keys.length>24?keys.slice(0,keys.length-24).reduce((s,k)=>s+cmByMonth[k],0):0;
+  el.innerHTML='<span class="lbl">Data coverage</span> <b>'+all.length.toLocaleString()+'</b> companies cached \u00b7 award dates <b>'+esc(loA)+'</b> \u2192 <b>'+esc(hiA)+'</b> \u00b7 last scanned <b>'+esc(lastScan)+'</b>'+
+    (lastRun?' \u00b7 last window '+esc(lastRun.from)+' \u2192 '+esc(lastRun.to):'')+
+    '. <span style="color:var(--faint)">Run the next window from where this leaves off.</span>'+
+    '<div style="font-size:11.5px;font-weight:700;color:var(--ink2);margin:12px 0 2px">Companies you have, by last-award month <span style="font-weight:500;color:var(--muted)">(all cached \u2014 grows every scan, never resets)</span></div>'+
+    monthBarsHTML(recentMap)+
+    (olderCount?'<div style="font-size:11px;color:var(--muted)">+ '+olderCount.toLocaleString()+' more companies with award months older than the last 24 shown.</div>':'');
+  el.classList.add('show');
+}
+
+/* ================= CSV ================= */
+function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function downloadCSV(rows,name){
+  const csv=rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}); // BOM = Excel reads UTF-8
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function seLabels(c){return (c.seBadges||badgesFromTypes(c.seTypes)).map(b=>b.label).join(' / ');}
+function plainTalk(c){return (c.talk||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");}
+function exportScanCSV(){
+  // One row per in-focus company — built for the BidWay sales mailing / Excel paste.
+  const rows=[['Company','UEI','CAGE','City','State','POC','Phone','Email','FSC','Socioeconomic','Tier','Total Federal Contracts','New This Run',
+    'Last Award ID','Last Award $','Last Award Date','Last Award Description','Awards In Window','Window Total $',
+    'Sales Talking Point','Status','Notes','USAspending','SAM.gov','LinkedIn']];
+  const list=scanResults.filter(c=>c.tier&&focusTiers.has(c.tier))
+    .sort((a,b)=>({first:0,emerging:1,growing:2,established:3}[a.tier]-{first:0,emerging:1,growing:2,established:3}[b.tier]));
+  for(const c of list){
+    const a=c.awards[0]||{};
+    const tot=c.awards.reduce((s,x)=>s+(x.amount||0),0);
+    rows.push([c.name,c.uei,c.cage||'',c.city,c.state,c.pocName||'',c.phone||'',c.email||'',fscOf(c),seLabels(c),c.tier?TIERS[c.tier].label:'',
+      c.totalContracts==null?'':c.totalContracts,c.isNew?'YES':'',
+      a.id||'',a.amount==null?'':a.amount,a.date||'',a.desc||'',c.awards.length,tot,
+      plainTalk(c),c.status||'New',c.notes||'',
+      c.recipientId?'https://www.usaspending.gov/recipient/'+c.recipientId+'/latest':'',
+      'https://sam.gov/search/?q='+encodeURIComponent(c.name),
+      'https://www.linkedin.com/search/results/companies/?keywords='+encodeURIComponent(c.name)]);
+  }
+  downloadCSV(rows,'bidway-scan-'+todayISO()+'.csv');
+}
+async function exportPipelineCSV(){
+  const all=await idbGetAll('recipients');
+  const rows=[['Company','UEI','CAGE','City','State','POC','Socioeconomic','Tier','Total Federal Contracts',
+    'Last Award ID','Last Award $','Last Award Date','Last Award Description','Sales Talking Point','First Seen','Status','Notes']];
+  for(const r of all)rows.push([r.name,r.uei,r.cage||'',r.city,r.state,r.pocName||'',
+    (badgesFromTypes(r.seTypes).map(b=>b.label).join(' / ')),r.tier?TIERS[r.tier].label:'',r.totalContracts==null?'':r.totalContracts,
+    r.lastAwardId||'',r.lastAwardAmt==null?'':r.lastAwardAmt,r.lastAwardDate||'',r.lastAwardDesc||'',
+    (r.talk||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'"),
+    new Date(r.firstSeenAt).toLocaleDateString(),r.status||'New',r.notes||'']);
+  downloadCSV(rows,'bidway-pipeline-'+todayISO()+'.csv');
+}
+function pipelineRow(r){
+  return [
+    r.lastAwardDate||'', r.scanDate||(r.lastSeenAt?new Date(r.lastSeenAt).toISOString().slice(0,10):''),
+    r.name, r.uei, r.cage||'', r.city||'', r.state||'', r.pocName||'', r.phone||'', r.email||'',
+    r.fsc||((r.lastAwardDesc||'').match(/\b(\d{4})\d*/)||[])[1]||'',
+    badgesFromTypes(r.seTypes).map(b=>b.label).join(' / '),
+    r.tier?TIERS[r.tier].label:'', r.totalContracts==null?'':r.totalContracts,
+    r.lastAwardId||'', r.lastAwardAmt==null?'':r.lastAwardAmt, r.lastAwardDesc||'',
+    (r.talk||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'"),
+    r.firstSeenAt?new Date(r.firstSeenAt).toLocaleDateString():'', r.status||'New', r.notes||'',
+    r.recipientId?'https://www.usaspending.gov/recipient/'+r.recipientId+'/latest':'',
+    'https://sam.gov/search/?q='+encodeURIComponent(r.name),
+    'https://www.linkedin.com/search/results/companies/?keywords='+encodeURIComponent(r.name)
+  ];
+}
+const PIPE_HEADER=['Last Award Date','Scanned','Company','UEI','CAGE','City','State','POC','Phone','Email','FSC','Socioeconomic','Tier','Total Contracts','Last Award ID','Last Award $','Last Award Description','Sales Talking Point','First Seen','Status','Notes','USAspending','SAM.gov','LinkedIn'];
+const PIPE_WIDTHS=[12,11,28,14,9,16,6,18,15,26,7,18,10,11,16,13,34,60,12,11,24,14,14,14];
+function appendPipelineSheet(wb,list,name){
+  const data=[PIPE_HEADER, ...list.map(pipelineRow)];
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=PIPE_WIDTHS.map(w=>({wch:w}));
+  styleSheet(ws,data.length-1,[15],{21:'USAspending',22:'SAM.gov',23:'LinkedIn'},23);
+  XLSX.utils.book_append_sheet(wb,ws,name);
+}
+// Build a tier-tabbed workbook (All Targets + First/Emerging/Growing/Established) from pipeline records.
+function buildPipelineWorkbook(all,filePrefix){
+  const sorted=all.slice().sort((a,b)=>(b.lastAwardDate||'').localeCompare(a.lastAwardDate||''));
+  const wb=XLSX.utils.book_new();
+  appendPipelineSheet(wb,sorted,'All Targets');
+  const tabNames={first:'First Award',emerging:'Emerging',growing:'Growing',established:'Established'};
+  for(const tier of ['first','emerging','growing','established']){
+    const list=sorted.filter(r=>r.tier===tier);
+    if(list.length)appendPipelineSheet(wb,list,tabNames[tier]);
+  }
+  XLSX.writeFile(wb,filePrefix+'-'+todayISO()+'.xlsx');
+}
+async function exportPipelineXLSX(){
+  if(typeof XLSX==='undefined'){showNotice('Excel library didn\u2019t load (no internet when the page opened?). Use Export CSV instead.');return;}
+  const all=await idbGetAll('recipients');
+  if(!all.length){showNotice('Pipeline is empty \u2014 run a scan first; every target lands here automatically.');return;}
+  buildPipelineWorkbook(all,'bidway-pipeline');
+}
+// Export every company that was part of your most recent scan (new or re-seen) — the batch to hand the team.
+async function exportLatestScan(){
+  if(typeof XLSX==='undefined'){showNotice('Excel library didn\u2019t load. Use Export CSV instead.');return;}
+  const runs=(await idbGetAll('runs')).sort((a,b)=>b.at-a.at);
+  if(!runs.length){showNotice('No scans logged yet \u2014 run a scan first.');return;}
+  const since=runs[0].at-5000; // companies touched in the latest run
+  const all=(await idbGetAll('recipients')).filter(r=>r.lastSeenAt&&r.lastSeenAt>=since);
+  if(!all.length){showNotice('The latest scan didn\u2019t save any target companies (it may have been throttled, or found only established firms). Run a scan, or use Export Excel for your full set.');return;}
+  const brandNew=all.filter(r=>r.firstSeenAt&&r.firstSeenAt>=since).length;
+  buildPipelineWorkbook(all,'bidway-latest-scan-'+all.length);
+  showNotice('Exported your latest scan: <b>'+all.length.toLocaleString()+'</b> companies'+(brandNew?' ('+brandNew.toLocaleString()+' first seen this run, the rest re-confirmed)':'')+', tier-tabbed.');
+}
+
+// ===== XLSX export: one tab per tier, sorted by most-recent award date =====
+function xlsxHeader(){return ['Last Award Date','Company','UEI','CAGE','City','State','POC','Phone','Email','FSC','Socioeconomic','Tier',
+  'Total Contracts ('+(($('fScope')&&$('fScope').value==='dla')?'DLA':'all federal')+')','Last Award ID','Last Award $','Last Award Description','Awards In Window','Window Total $',
+  'Sales Talking Point','Status','Notes','USAspending','SAM.gov','LinkedIn'];}
+const XL_WIDTHS=[12,28,14,9,16,6,18,15,26,7,18,10,11,16,13,34,8,13,60,11,24,14,14,14];
+function companyRow(c){
+  const a=(c.awards&&c.awards[0])||{};
+  const tot=(c.awards||[]).reduce((s,x)=>s+(x.amount||0),0);
+  return [a.date||'',c.name,c.uei,c.cage||'',c.city||'',c.state||'',c.pocName||'',c.phone||'',c.email||'',fscOf(c),seLabels(c),c.tier?TIERS[c.tier].label:'',
+    c.totalContracts==null?'':c.totalContracts,a.id||'',a.amount==null?'':a.amount,a.desc||'',(c.awards||[]).length,tot,
+    plainTalk(c),c.status||'New',c.notes||'',
+    c.recipientId?'https://www.usaspending.gov/recipient/'+c.recipientId+'/latest':'',
+    'https://sam.gov/search/?q='+encodeURIComponent(c.name),
+    'https://www.linkedin.com/search/results/companies/?keywords='+encodeURIComponent(c.name)];
+}
+// Apply formatting SheetJS 0.18.5 supports: currency number format, clickable hyperlinks,
+// header filter dropdowns (autofilter), column widths. (Freeze panes aren't supported by this lib.)
+function styleSheet(ws,lastRow,dollarCols,linkMap,lastCol){
+  for(let r=1;r<=lastRow;r++){
+    dollarCols.forEach(c=>{const ref=XLSX.utils.encode_cell({r,c});const cell=ws[ref];if(cell&&cell.v!==''&&cell.v!=null){cell.t='n';cell.z='"$"#,##0';}});
+    Object.keys(linkMap).forEach(cs=>{const c=+cs;const ref=XLSX.utils.encode_cell({r,c});const cell=ws[ref];if(cell&&cell.v){cell.l={Target:String(cell.v),Tooltip:'Open'};cell.v=linkMap[c];cell.t='str';}});
+  }
+  ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:lastRow,c:lastCol}})};
+}
+function styleScanSheet(ws,lastRow){
+  styleSheet(ws,lastRow,[14,17],{21:'USAspending',22:'SAM.gov',23:'LinkedIn'},23);
+}
+function exportScanXLSX(){
+  if(typeof XLSX==='undefined'){showNotice('Excel library didn\u2019t load (no internet when the page opened?). Use Export CSV instead, or reopen the file while online.');return;}
+  const wb=XLSX.utils.book_new();
+  const order=['first','emerging','growing','established'];
+  const tabNames={first:'First Award',emerging:'Emerging',growing:'Growing',established:'Established'};
+  let any=false;
+  const mkSheet=(list,name)=>{
+    const H=xlsxHeader();const data=[H, ...list.map(companyRow)];
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=H.map((h,i)=>({wch:XL_WIDTHS[i]||14}));
+    styleScanSheet(ws,data.length-1);
+    XLSX.utils.book_append_sheet(wb,ws,name); any=true;
+  };
+  const inFocus=scanResults.filter(c=>c.tier&&focusTiers.has(c.tier))
+    .sort((a,b)=>((b.awards&&b.awards[0]&&b.awards[0].date)||'').localeCompare((a.awards&&a.awards[0]&&a.awards[0].date)||''));
+  if(inFocus.length)mkSheet(inFocus,'All Targets');
+  for(const tier of order){
+    if(!focusTiers.has(tier))continue;
+    const list=scanResults.filter(c=>c.tier===tier)
+      .sort((a,b)=>((b.awards&&b.awards[0]&&b.awards[0].date)||'').localeCompare((a.awards&&a.awards[0]&&a.awards[0].date)||''));
+    if(list.length)mkSheet(list,tabNames[tier]);
+  }
+  if(!any){showNotice('Nothing to export yet \u2014 run a scan first.');return;}
+  XLSX.writeFile(wb,'bidway-targets-'+todayISO()+'.xlsx');
+}
+
+/* ================= Wire up ================= */
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');$('panel-'+t.dataset.tab).classList.add('active');
+}));
+document.querySelectorAll('.fpill').forEach(p=>p.addEventListener('click',()=>{
+  document.querySelectorAll('.fpill').forEach(x=>x.classList.remove('active'));
+  p.classList.add('active');tierFilter=p.dataset.tier;page=1;renderResults();
+}));
+$('btnRun').addEventListener('click',()=>runScan());
+$('fltSdvosb').addEventListener('change',()=>{page=1;renderResults();});
+$('fltSetaside').addEventListener('change',()=>{page=1;renderResults();});
+$('fltFsc').addEventListener('input',()=>{page=1;renderResults();});
+$('btnYear').addEventListener('click',()=>runYearScan());
+$('btnAbort').addEventListener('click',()=>{aborted=true;setProgress(0,'Aborted');});
+$('btnCsv').addEventListener('click',exportScanCSV);
+$('btnXlsx').addEventListener('click',exportScanXLSX);
+$('btnPipeCsv').addEventListener('click',exportPipelineCSV);
+$('btnPipeXlsx').addEventListener('click',exportPipelineXLSX);
+$('btnPipeNew').addEventListener('click',exportLatestScan);
+['vmArpu','vmMonths','vmConv','vmBounty'].forEach(id=>$(id).addEventListener('input',renderValueModel));
+['fpRate','fpShare','fpSample'].forEach(id=>$(id).addEventListener('input',()=>renderFinancePricing(_financeLeads)));
+
+function updateTokenStatus(){
+  const el=$('tokenStatus'); if(!el)return;
+  const v=$('fScrapeToken')?$('fScrapeToken').value.trim():'';
+  el.innerHTML=v
+    ? '<span style="color:var(--first);font-weight:600">✓ Token saved — phone &amp; CAGE lookup is on for every scan.</span>'
+    : '<span style="color:var(--muted)">No token yet — the app runs keyless; the Phone column stays blank until you add one.</span>';
+}
+(async function init(){
+  $('fFrom').value=daysAgoISO(30);
+  $('fTo').value=todayISO();
+  await openDB();
+  // Phone-lookup token lives in the Settings tab; load whatever was saved on this machine.
+  const st=await idbGet('kv','scrapeToken');
+  if(st&&st.v&&$('fScrapeToken'))$('fScrapeToken').value=st.v;
+  if($('fScrapeToken'))$('fScrapeToken').addEventListener('change',async()=>{
+    const v=$('fScrapeToken').value.trim();
+    try{ await idbPut('kv',{k:'scrapeToken',v}); }catch(_){}
+    updateTokenStatus();
+  });
+  updateTokenStatus();
+  const vm=await idbGet('kv','valueModel');
+  if(vm&&vm.v){ if(vm.v.arpu!=null)$('vmArpu').value=vm.v.arpu; if(vm.v.months!=null)$('vmMonths').value=vm.v.months; if(vm.v.convPct!=null)$('vmConv').value=vm.v.convPct; if(vm.v.bounty!=null)$('vmBounty').value=vm.v.bounty; }
+  const fp=await idbGet('kv','financePricing');
+  if(fp&&fp.v){ if(fp.v.rate!=null)$('fpRate').value=fp.v.rate; if(fp.v.share!=null)$('fpShare').value=fp.v.share; if(fp.v.sample!=null)$('fpSample').value=fp.v.sample; }
+  await refreshPipeline();await refreshLog();await renderCoverage();
+})();
+</script>
+</body>
+</html>
