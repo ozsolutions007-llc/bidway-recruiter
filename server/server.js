@@ -546,8 +546,11 @@ app.delete('/api/kv/:k', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Static page: the newest versioned HTML in the repo root ──
+// ── Static page: whatever GitHub holds. `bidway-recruiter.html` is the canonical page; if it is
+// absent, fall back to the newest `bidway-recruiter_v*.html`. ──
 function pageFile() {
+  const canonical = path.join(PUBLIC_DIR, 'bidway-recruiter.html');
+  if (fs.existsSync(canonical)) return canonical;
   const files = fs.readdirSync(PUBLIC_DIR).filter(f => /^bidway-recruiter_v.*\.html$/.test(f))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   return files.length ? path.join(PUBLIC_DIR, files[files.length - 1]) : null;

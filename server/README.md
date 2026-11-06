@@ -17,8 +17,9 @@ On the app server it runs under pm2 as `bidway-recruiter`. After pulling a new p
 ~/bidway-recruiter-update.sh   # git pull + pm2 restart
 ```
 
-The server serves the newest `bidway-recruiter_v*.html` in the repo root, so a new version is just a
-new file.
+The server serves `bidway-recruiter.html` from the repo root, exactly as committed on GitHub. If that
+file is absent it falls back to the newest `bidway-recruiter_v*.html`. Pushing a new page to `main`
+is all that is needed; the deploy cron on the server pulls it within two minutes.
 
 ## First sign-in
 
