@@ -620,13 +620,17 @@ let currentUser=null;
 let lastUserActivity=Date.now();
 ['mousedown','keydown','touchstart','wheel'].forEach(ev=>document.addEventListener(ev,()=>{lastUserActivity=Date.now();},{passive:true}));
 const IDLE_LIMIT_MS=15*60*1000;
-setInterval(()=>{ if(currentUser&&Date.now()-lastUserActivity>IDLE_LIMIT_MS)sessionExpired('Signed out after 15 minutes of inactivity'); },30*1000);
+// A running scan counts as activity: it can spend many minutes on USAspending before its first save,
+// and it must not be signed out (here or by NexusPanel's proxy) part-way through.
+let scanInProgress=false;
+setInterval(()=>{ if(currentUser&&!scanInProgress&&Date.now()-lastUserActivity>IDLE_LIMIT_MS)sessionExpired('Signed out after 15 minutes of inactivity'); },30*1000);
+setInterval(()=>{ if(currentUser&&scanInProgress)api('/api/me').catch(()=>{}); },4*60*1000); // keeps both sessions alive during a scan
 
 // The app may be served at a sub-path (NexusPanel proxies it at /apps/recruiter/), so API calls are
 // made relative to wherever the page was loaded from.
 const API_BASE=location.pathname.replace(/\/[^/]*$/,'');
 async function api(url,opts={}){
-  const headers={'Content-Type':'application/json','X-Activity':(Date.now()-lastUserActivity<60000)?'1':'0'};
+  const headers={'Content-Type':'application/json','X-Activity':(scanInProgress||Date.now()-lastUserActivity<60000)?'1':'0'};
   const res=await fetch(API_BASE+url,{...opts,headers,body:opts.body!==undefined?JSON.stringify(opts.body):undefined});
   let data={}; try{ data=await res.json(); }catch(_){}
   if(!res.ok){
@@ -1478,7 +1482,7 @@ function runYearScan(){
 }
 async function runScan(isRetry, override){
   clearNotice();
-  aborted=false;
+  aborted=false; scanInProgress=true;
   $('runStatus').textContent='';
   $('btnRun').disabled=true;$('btnYear').disabled=true;$('btnAbort').style.display='inline-block';$('btnCsv').disabled=true;
   $('scanEmpty').style.display='none';
@@ -1708,7 +1712,7 @@ async function runScan(isRetry, override){
     $('runStatus').textContent='Scan failed \u2014 see message above.';
   }finally{ finishScan(); }
 }
-function finishScan(){$('btnRun').disabled=false;$('btnYear').disabled=false;$('btnAbort').style.display='none';if(scanResults.length){$('btnCsv').disabled=false;$('btnXlsx').disabled=false;}renderCoverage();}
+function finishScan(){scanInProgress=false;$('btnRun').disabled=false;$('btnYear').disabled=false;$('btnAbort').style.display='none';if(scanResults.length){$('btnCsv').disabled=false;$('btnXlsx').disabled=false;}renderCoverage();}
 
 /* ================= Render: scan results ================= */
 function tierPill(c){
