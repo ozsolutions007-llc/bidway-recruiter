@@ -363,7 +363,7 @@ footer{margin-top:36px;font-size:11px;color:var(--faint);text-align:center;line-
           <div class="sect-title"><span class="sect-num">2</span> Target filters</div>
           <div class="field"><div class="row2"><div><label>Min award $</label><input type="number" id="fMin" value="0"></div><div><label>Max award $</label><input type="number" id="fMax" value="50000"></div></div></div>
           <div class="field"><label>Max DLA / federal contracts</label><input type="number" id="fMaxAwards" value="10"><div class="hint">Companies above this count as Established</div></div>
-          <div class="field"><label>NAICS filter (optional)</label><input type="text" id="fNaics" placeholder="332722, 339991, 423710"><div class="hint">Comma-separated. Blank = all DLA</div></div>
+          <div class="field"><label>NAICS filter (optional)</label><input type="text" id="fNaics" autocomplete="off" inputmode="numeric" placeholder="332722, 339991, 423710"><div class="hint">Comma-separated. Blank = all DLA</div></div>
           <div class="toggle-row"><input type="checkbox" id="fSmall" checked><span>Small business recipients only</span></div>
           <div class="toggle-row"><input type="checkbox" id="fProductsOnly" checked><span>Products only (exclude service PSCs)</span></div>
         </div>
@@ -1465,7 +1465,7 @@ function readScanParams(){
     order:$('fOrder').value||'desc',
     small:$('fSmall').checked,
     productsOnly:$('fProductsOnly').checked,
-    naics:$('fNaics').value.split(',').map(s=>s.trim()).filter(Boolean),
+    naics:(()=>{ const raw=$('fNaics').value.split(/[,\s]+/).map(s=>s.trim()).filter(Boolean); const bad=raw.filter(c=>!/^\d{2,6}$/.test(c)); if(bad.length)throw new Error('NAICS filter must be numeric codes (2-6 digits), separated by commas. Not valid: '+bad.join(', ')+'. Clear the box to scan all of DLA.'); return raw; })(),
     scrapeToken:($('fScrapeToken')?$('fScrapeToken').value.trim():''),
     forcePhone:$('fForcePhone').checked,
     email:$('fEmail').checked
@@ -1489,7 +1489,9 @@ async function runScan(isRetry, override){
   scanResults=[];renderResults();
   _samDiagDone=false;
   _scrapeDiagDone=false;
-  const p=Object.assign(readScanParams(), override||{});
+  let p;
+  try{ p=Object.assign(readScanParams(), override||{}); }
+  catch(e){ showNotice('Scan not started: '+esc(e.message)); $('runStatus').textContent='Fix the scan settings and try again.'; finishScan(); return; }
   if(override)showNotice('<b>1-year scan:</b> '+esc(p.from)+' \u2192 '+esc(p.to)+', ignoring the filter boxes (small-biz \u00b7 products \u00b7 $0\u2013'+p.max.toLocaleString()+'), but keeping your selected tiers.');
   // Read pre-query target-tier focus
   focusTiers=new Set([...document.querySelectorAll('#focusPills input:checked')].map(i=>i.value));
